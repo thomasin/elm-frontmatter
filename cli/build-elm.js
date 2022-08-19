@@ -9,17 +9,17 @@ async function buildElm (config, dirPath) {
     await fs.copy(path.join(process.cwd(), config.outputDir, './Content.elm'), path.join(dirPath, './src/Content.elm'))
 
     // Copy the node package Elm code into the temporary directory.
-    await fs.copy(path.join(__dirname, './elm/src/'), path.join(dirPath, './src/'))
+    await fs.copy(path.join(__dirname, './elm/src/'), path.join(dirPath, './cli/elm/src/'))
 
     // Copy the node package elm.json into the temporary directory.
-    await fs.copy(path.join(__dirname, './elm.json'), path.join(dirPath, './elm.json'))
+    await fs.copy(path.join(__dirname, './elm.json'), path.join(dirPath, './cli/elm.json'))
 
     // Copy the Elm package files into the temporary directory.
-    await fs.copy(path.join(__dirname, '../src/'), path.join(dirPath, './package/'))
+    await fs.copy(path.join(__dirname, '../src/'), path.join(dirPath, './src/'))
 
     try {
-        spawn.sync('elm', ['make', './src/Main.elm', '--output', './elm.js'], {
-            cwd: dirPath,
+        spawn.sync('elm', ['make', './elm/src/Main.elm', '--output', '../elm.js'], {
+            cwd: path.join(dirPath, 'cli'),
             stdio: ['ignore', 'ignore', 'inherit']
         })
 
