@@ -6,7 +6,7 @@ const spawn = require('cross-spawn')
 
 async function buildElm (config, dirPath) {
     // Copy the user created Content.elm file into the temporary directory.
-    await fs.copy(path.join(process.cwd(), config.outputDir, './Content.elm'), path.join(dirPath, './src/Content.elm'))
+    await fs.copy(path.join(process.cwd(), config.elmDir, './Content.elm'), path.join(dirPath, './src/Content.elm'))
 
     // Copy the node package Elm code into the temporary directory.
     await fs.copy(path.join(__dirname, './elm/src/'), path.join(dirPath, './cli/elm/src/'))

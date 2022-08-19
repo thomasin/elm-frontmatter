@@ -16,8 +16,14 @@ const plugins = require('./cli/plugins.js')
 
 //
 
+defaultConfig = {
+    inputDir: './content/',
+    inputGlob: '**/*.md',
+    elmDir: './src/',
+}
 
-const config = require(path.join(process.cwd(), './frontmatter.config.js'))
+const userProvidedConfig = require(path.join(process.cwd(), './frontmatter.config.js'))
+const config =  { ...defaultConfig, ...userProvidedConfig }
 
 
 async function fileGlob() {
@@ -57,16 +63,16 @@ async function fileGlob() {
                 const response = await prompts({
                     type: 'confirm',
                     name: 'accepted',
-                    message: 'Overwrite the ' + path.join(process.cwd(), config.outputDir, 'Content') + ' directory?'
+                    message: 'Overwrite the ' + path.join(process.cwd(), config.elmDir, 'Content') + ' directory?'
                 })
 
                 if (response.accepted) {
-                    await fs.emptyDir(path.join(process.cwd(), config.outputDir, 'Content'))
-                    await fs.copy(path.join(tempDir, '/output/'), path.join(process.cwd(), config.outputDir))
+                    await fs.emptyDir(path.join(process.cwd(), config.elmDir, 'Content'))
+                    await fs.copy(path.join(tempDir, '/output/'), path.join(process.cwd(), config.elmDir))
 
                     console.log(chalk.bold.green("\nAll files written ✍️"))
 
-                    const result = spawn.sync('npx', ['elm-format', '--elm-version=0.19', '--yes', path.join(process.cwd(), config.outputDir, 'Content')], {
+                    const result = spawn.sync('npx', ['elm-format', '--elm-version=0.19', '--yes', path.join(process.cwd(), config.elmDir, 'Content')], {
                         stdio: ['ignore', 'ignore', 'ignore']
                     })
                 } else {
