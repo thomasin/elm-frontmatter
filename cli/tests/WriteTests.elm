@@ -1,18 +1,13 @@
 module WriteTests exposing (suite)
 
-import Expect
 --import Fuzz exposing (Fuzzer, int, list, string)
-import Test exposing (Test)
 
-
-import Content.Write as Write
 import Content.Decode
-import Elm.Writer
-import Elm.Syntax.Node
-import Elm.Syntax.Range
-import Time
-import Json.Encode
+import Content.Write as Write
+import Expect
 import Json.Decode
+import Json.Encode
+import Test exposing (Test)
 
 
 rec : Json.Decode.Value
@@ -25,6 +20,7 @@ rec =
                 ]
           )
         ]
+
 
 dec : Content.Decode.FrontmatterDecoder
 dec =
@@ -47,7 +43,7 @@ suite =
                     , documentation = Nothing
                     , decoder = dec
                     }
-                    |> Result.map (Write.toFileString ["Test"])
+                    |> Result.map (Write.toFileString [ "Test" ])
                     |> Result.withDefault ""
                     |> Expect.equal """module Test exposing (Test, test)
 
@@ -68,7 +64,7 @@ test  =
                     , documentation = Nothing
                     , decoder = dec
                     }
-                    |> Result.map (Write.toFileString ["test"])
+                    |> Result.map (Write.toFileString [ "test" ])
                     |> Result.withDefault ""
                     |> Expect.equal """module Test exposing (Test, test)
 
