@@ -1,3 +1,6 @@
+~~ very much wip ~~
+lots of undocumented things and not well unit tested (:
+
 elm-frontmatter - decode frontmatter files into elm
 
 With a folder structure like
