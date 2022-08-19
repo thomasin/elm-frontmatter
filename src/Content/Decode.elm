@@ -35,6 +35,7 @@ import Elm.Syntax.TypeAnnotation
 import Json.Decode
 import Json.Decode.Extra
 import List.Extra as List
+import String.Extra as String
 import Time
 
 
@@ -558,7 +559,7 @@ link typePath =
                         )
         , asExpression =
             \( _, functionName ) ->
-                Elm.Syntax.Expression.FunctionOrValue moduleDir functionName
+                Elm.Syntax.Expression.FunctionOrValue moduleDir (String.decapitalize functionName)
         , actions =
             always []
         }

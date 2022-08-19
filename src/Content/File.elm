@@ -217,12 +217,12 @@ outputPath pathSep filePath =
 
                         Bracketed folderName ->
                             continuePath restPath
-                                |> Result.map (fillInFileName (ListItemFile folderName))
+                                |> Result.map (fillInFileName (ListItemFile (String.decapitalize folderName)))
 
                         Normal folderName ->
                             continuePath restPath
-                                |> Result.map (fillInModuleDir folderName)
-                                |> Result.map (fillInFileName (SingletonFile folderName))
+                                |> Result.map (fillInModuleDir (String.classify folderName))
+                                |> Result.map (fillInFileName (SingletonFile "content"))
     in
     case Result.andThen continuePath (Result.combine (List.map cleanFilePiece (Content.Path.toList filePath))) of
         Ok details ->
