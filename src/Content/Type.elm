@@ -1,4 +1,6 @@
-module Content.Type exposing (Path(..), toTypeName, toString, toModuleDir)
+module Content.Type exposing (Path(..), fromFunctionType, toTypeName, toString, toModuleDir)
+
+import Content.Function
 
 {-|
 
@@ -8,12 +10,20 @@ module Content.Type exposing (Path(..), toTypeName, toString, toModuleDir)
 
 -}
 
-
-{-| Path
--}
 type Path
     = Single String
     | Multiple String
+
+
+
+fromFunctionType : Content.Function.FunctionType -> List String -> Path
+fromFunctionType functionType moduleDir =
+    case functionType of
+        Content.Function.SingletonFunction ->
+            Single (String.join "." moduleDir)
+
+        Content.Function.ListItemFunction ->
+            Multiple (String.join "." moduleDir)
 
 
 

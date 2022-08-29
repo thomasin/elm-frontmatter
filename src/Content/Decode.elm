@@ -25,9 +25,10 @@ module Content.Decode exposing
 
 import Content.Decode.Internal
 import Content.Decode.Syntax
-import Content.File
+import Content.Function
 import Content.Internal
-import Content.Path
+import Content.Output
+import Path
 import Content.Type
 import Elm.Syntax.Expression
 import Elm.Syntax.ModuleName
@@ -340,7 +341,7 @@ type alias Decoder a =
 
 {-| Create a decoder from a Syntax object.
 -}
-fromSyntax : Content.Decode.Syntax.Syntax a -> ({ pathSep : String, inputFilePath : String } -> Json.Decode.Decoder a) -> Decoder a
+fromSyntax : Content.Decode.Syntax.Syntax a -> ({ inputFilePath : Path.Path } -> Json.Decode.Decoder a) -> Decoder a
 fromSyntax syntax jsonDecoder =
     Content.Decode.Internal.Decoder
         { typeAnnotation = syntax.typeAnnotation
@@ -540,16 +541,16 @@ link typePath =
                 Json.Decode.string
                     |> Json.Decode.andThen
                         (\filePathStr ->
-                            case Content.Path.parse filePathStr of
+                            case Path.fromString (Path.platform args.inputFilePath) filePathStr of
                                 Ok filePath ->
-                                    case Content.File.outputPath args.pathSep filePath of
-                                        Content.Internal.Continue _ outputDetails ->
-                                            case outputDetails.fileName of
-                                                Content.File.ListItemFile functionName ->
-                                                    Json.Decode.succeed ( outputDetails.moduleDir, functionName )
+                                    case Content.Function.fromPath filePath of
+                                        Content.Output.Continue _ function ->
+                                            case function.type_ of
+                                                Content.Function.ListItemFunction ->
+                                                    Json.Decode.succeed ( function.moduleDir, function.name )
 
-                                                Content.File.SingletonFile functionName ->
-                                                    Json.Decode.succeed ( outputDetails.moduleDir, functionName )
+                                                Content.Function.SingletonFunction ->
+                                                    Json.Decode.succeed ( function.moduleDir, function.name )
 
                                         _ ->
                                             Json.Decode.fail ("Couldn't find file path " ++ filePathStr)

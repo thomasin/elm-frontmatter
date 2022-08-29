@@ -11,6 +11,7 @@ import Elm.Syntax.Import
 import Elm.Syntax.Module
 import Elm.Syntax.TypeAnnotation
 import Elm.Writer
+import Path
 import Json.Decode
 import Json.Encode
 import List.Extra as List
@@ -48,7 +49,7 @@ toFileString moduleDir (Writer writer) =
         )
 
 
-record : { functionName : String, functionType : String, inputFilePath : String, pathSep : String, frontmatter : Json.Decode.Value, documentation : Maybe String, decoder : Content.Decode.Internal.Declaration } -> Result Json.Decode.Error Writer
+record : { functionName : String, functionType : String, inputFilePath : Path.Path, frontmatter : Json.Decode.Value, documentation : Maybe String, decoder : Content.Decode.Internal.Declaration } -> Result Json.Decode.Error Writer
 record args =
     let
         functionName : String
@@ -68,7 +69,7 @@ record args =
 
         functionDeclarationResult : Result Json.Decode.Error { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration, actions : List { with : String, args : Json.Encode.Value } }
         functionDeclarationResult =
-            toFunctionDeclaration functionName functionType args.inputFilePath args.pathSep args.frontmatter args.documentation args.decoder
+            toFunctionDeclaration functionName functionType args.inputFilePath args.frontmatter args.documentation args.decoder
     in
     case functionDeclarationResult of
         Ok functionDeclaration ->
@@ -122,9 +123,9 @@ toTypeDeclaration typeName (Content.Decode.Internal.Declaration frontmatterDecod
     }
 
 
-toFunctionDeclaration : String -> String -> String -> String -> Json.Decode.Value -> Maybe String -> Content.Decode.FrontmatterDecoder -> Result Json.Decode.Error { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration, actions : List { with : String, args : Json.Encode.Value } }
-toFunctionDeclaration functionName functionType inputPath pathSep rawContent documentation (Content.Decode.Internal.Declaration frontmatterDecoder) =
-    case Json.Decode.decodeValue (frontmatterDecoder.jsonDecoder { inputFilePath = inputPath, pathSep = pathSep }) rawContent of
+toFunctionDeclaration : String -> String -> Path.Path -> Json.Decode.Value -> Maybe String -> Content.Decode.FrontmatterDecoder -> Result Json.Decode.Error { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration, actions : List { with : String, args : Json.Encode.Value } }
+toFunctionDeclaration functionName functionType inputPath rawContent documentation (Content.Decode.Internal.Declaration frontmatterDecoder) =
+    case Json.Decode.decodeValue (frontmatterDecoder.jsonDecoder { inputFilePath = inputPath }) rawContent of
         Ok decodedFields ->
             Ok
                 { exposed = Elm.Syntax.Exposing.FunctionExpose functionName

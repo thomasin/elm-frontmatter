@@ -2,25 +2,30 @@ module Main exposing (main)
 
 import Content
 import Content.Decode.File
-import Content.File
-import Content.Internal
+import Content.Function
+import Content.Output
+import Parser
+import Path
+import Path.Platform
 import Dict
 import Json.Decode
+import Json.Decode.Extra
+import Modules
 import Platform
 import Set
 import Ports
 
 
 type Msg
-    = Add Content.File.InputFile
+    = Add Content.Decode.File.InputFile
     | Problem String
     | EffectsPerformed String
     | NoMoreInputFiles Int
 
 
 type alias Model =
-    { pathSep : String
-    , fileContents : Content.File.Files
+    { platform : Path.Platform
+    , modulesContents : Modules.Contents
     , outputFiles : List { filePath : String, fileContents : String }
     , fileEffectsPerformed : Set.Set String
     }
@@ -36,8 +41,8 @@ main =
 
 init : { pathSep : String } -> ( Model, Cmd Msg )
 init flags =
-    ( { pathSep = flags.pathSep
-      , fileContents = Dict.empty
+    ( { platform = Path.Platform.fromSeparator flags.pathSep
+      , modulesContents = Dict.empty
       , outputFiles = []
       , fileEffectsPerformed = Set.empty
       }
@@ -58,37 +63,37 @@ update msg model =
             )
 
         NoMoreInputFiles _ ->
-            case Content.Internal.sequence (List.map (Content.Decode.File.toFile model.pathSep Content.decoder) (Content.File.filesToList model.fileContents)) of
-                Content.Internal.Continue messages allFiles ->
+            case Content.Output.sequence (List.map (Content.Decode.File.toFile Content.decoder) (Modules.modulesToList model.modulesContents)) of
+                Content.Output.Continue messages allFiles ->
                     ( { model
                       | fileEffectsPerformed = Set.fromList (List.map .filePath allFiles)
                       , outputFiles = List.map (\file -> { filePath = file.filePath, fileContents = file.fileContents }) allFiles
                       }
                     , Cmd.batch
-                        [ Ports.show (Content.Internal.encodeMessages messages)
+                        [ Ports.show (Content.Output.encodeMessages messages)
                         , Cmd.batch (List.map (\file -> Ports.performEffect { filePath = file.filePath, actions = file.actions }) allFiles)
                         ]
                     )
 
-                Content.Internal.Ignore messages ->
-                    ( model, Ports.show (Content.Internal.encodeMessages messages) )
+                Content.Output.Ignore messages ->
+                    ( model, Ports.show (Content.Output.encodeMessages messages) )
 
-                Content.Internal.Terminate message ->
+                Content.Output.Terminate message ->
                     ( model, Ports.terminate message )
 
         Add inputFile ->
-            case Content.File.outputPath model.pathSep inputFile.filePath of
-                Content.Internal.Continue messages fileDetails ->
-                    ( { model | fileContents = Content.File.newFile fileDetails inputFile model.fileContents }
-                    , Ports.show (Content.Internal.encodeMessages messages)
+            case Content.Function.fromPath inputFile.filePath of
+                Content.Output.Continue messages functionDetails ->
+                    ( { model | modulesContents = Modules.newFunction functionDetails inputFile model.modulesContents }
+                    , Ports.show (Content.Output.encodeMessages messages)
                     )
 
-                Content.Internal.Ignore messages ->
+                Content.Output.Ignore messages ->
                     ( model
-                    , Ports.show (Content.Internal.encodeMessages messages)
+                    , Ports.show (Content.Output.encodeMessages messages)
                     )
 
-                Content.Internal.Terminate message ->
+                Content.Output.Terminate message ->
                     ( model
                     , Ports.terminate message
                     )
@@ -99,20 +104,33 @@ update msg model =
             )
 
 
-addRawFile : Json.Decode.Value -> Msg
-addRawFile jsValue =
-    case Json.Decode.decodeValue Content.File.decodeInputFile jsValue of
-        Ok newFile ->
-            Add newFile
+addRawFile : Path.Platform -> Json.Decode.Value -> Msg
+addRawFile platform jsValue =
+    let
+        decodeInputFile : Json.Decode.Decoder Content.Decode.File.InputFile
+        decodeInputFile =
+            Json.Decode.map2 Content.Decode.File.InputFile
+                (Json.Decode.field "filePath"
+                    (Json.Decode.string
+                        |> Json.Decode.andThen
+                            (Json.Decode.Extra.fromResult << Path.fromString platform)
+                    )
+                )
+                (Json.Decode.field "fileFrontmatter" Json.Decode.value)
+
+    in  
+    case Json.Decode.decodeValue decodeInputFile jsValue of
+        Ok newInputFile ->
+            Add newInputFile
 
         Err err ->
             Problem (Json.Decode.errorToString err)
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
-        [ Ports.add addRawFile
+        [ Ports.add (addRawFile model.platform)
         , Ports.noMoreInputFiles NoMoreInputFiles
         , Ports.effectsPerformed EffectsPerformed
         ]

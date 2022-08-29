@@ -16,14 +16,23 @@ const plugins = require('./cli/plugins.js')
 
 //
 
-defaultConfig = {
-    inputDir: './content/',
-    inputGlob: '**/*.md',
-    elmDir: './src/',
+function getConfig() {
+    const defaultConfig = {
+        inputDir: './content/',
+        inputGlob: '**/*.md',
+        elmDir: './src/',
+    }
+
+    try {
+        const userProvidedConfig = require(path.join(process.cwd(), './frontmatter.config.js'))
+        return { ...defaultConfig, ...userProvidedConfig }
+    } catch {
+        return defaultConfig
+    }
 }
 
-const userProvidedConfig = require(path.join(process.cwd(), './frontmatter.config.js'))
-const config =  { ...defaultConfig, ...userProvidedConfig }
+
+const config = getConfig()
 
 
 async function fileGlob() {

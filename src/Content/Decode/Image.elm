@@ -10,7 +10,7 @@ import Content.Decode
 import Content.Decode.Image.Internal
 import Content.Decode.Internal
 import Content.Decode.Syntax
-import Content.Path
+import Path
 import Json.Decode
 import Json.Encode
 
@@ -88,7 +88,8 @@ process copyArgs manipulations =
                     |> Json.Decode.andThen (Content.Decode.Image.Internal.createActions args copyArgs (Content.Decode.Image.Internal.Single manipulations))
         , asExpression =
             \( firstActionDetails, _ ) ->
-                Content.Decode.Syntax.string.expression (Content.Path.join [ firstActionDetails.paths.rewritePath, firstActionDetails.paths.fileName ])
+                Content.Decode.Syntax.string.expression
+                    (Path.toString firstActionDetails.paths.rewritePath ++ Path.separator firstActionDetails.paths.rewritePath ++ firstActionDetails.paths.fileName)
         , actions =
             \( firstActionDetails, _ ) ->
                 [ { with = "image"
@@ -168,12 +169,12 @@ batchProcess copyArgs firstManipulation manipulations =
             \( firstActionDetails, restActionDetails ) ->
                 syntax.expression
                     ( ( firstActionDetails.paths.modifierName
-                      , Content.Path.join [ firstActionDetails.paths.rewritePath, firstActionDetails.paths.fileName ]
+                      , Path.toString firstActionDetails.paths.rewritePath ++ Path.separator firstActionDetails.paths.rewritePath ++ firstActionDetails.paths.fileName
                       )
                     , List.map
                         (\actionDetails ->
                             ( actionDetails.paths.modifierName
-                            , Content.Path.join [ actionDetails.paths.rewritePath, actionDetails.paths.fileName ]
+                            , Path.toString actionDetails.paths.rewritePath ++ Path.separator actionDetails.paths.rewritePath ++ actionDetails.paths.fileName
                             )
                         )
                         restActionDetails
