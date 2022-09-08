@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./elm.js"></script>
+    <title>elm-frontmatter example</title>
+  </head>
+  <body>
+  	<main>unloaded</main>
+
+    <script>
+		function loadApp() {
+		  var app = Elm.Main.init({ node: document.querySelector('main') })
+		}
+
+		loadApp()
+    </script>
+  </body>
+</html>

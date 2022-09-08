@@ -1,41 +1,23 @@
-module Modules exposing (..)
-
+module Modules exposing (Contents, InputFile, modulesToList, newFunction)
 
 import Content.Function
-import Content.Decode.File
-import Path
-import Parser
+import Content.Module
 import Dict
 import Json.Decode
-import Json.Decode.Extra
-import Result.Extra as Result
-import String.Extra as String
+import Path
+
+
+type alias InputFile =
+    { filePath : Path.Path
+    , fileFrontmatter : Json.Decode.Value
+    }
 
 
 type alias Contents =
-    Dict.Dict (List String) (Dict.Dict String { type_ : Content.Function.FunctionType, inputFile : Content.Decode.File.InputFile })
+    Dict.Dict (List String) (Dict.Dict String Content.Module.UndecodedFunction)
 
 
-
---toDict : FileDetails -> Dict.Dict String Content.Decode.File.InputFile
---toDict fileDetails =
---    case fileDetails of
---        JustContent ( functionName, inputFile ) ->
---            Dict.singleton functionName inputFile
-
---        JustListItems functionDict ->
---            functionDict
-
---        Both ( functionName, inputFile ) functionDict ->
---            Dict.insert functionName inputFile functionDict
-
-
---type ModuleContent
---    = JustContent ( String, Content.Decode.File.InputFile )
---    | JustListItems (Dict.Dict String Content.Decode.File.InputFile)
---    | Both ( String, Content.Decode.File.InputFile ) (Dict.Dict String Content.Decode.File.InputFile)
-
-modulesToList : Contents -> List Content.Decode.File.OutputModule
+modulesToList : Contents -> List Content.Module.UndecodedModule
 modulesToList filesDict =
     Dict.toList filesDict
         |> List.map
@@ -46,40 +28,15 @@ modulesToList filesDict =
             )
 
 
-newFunction : Content.Function.Function -> Content.Decode.File.InputFile -> Contents -> Contents
+newFunction : Content.Function.Function -> InputFile -> Contents -> Contents
 newFunction function inputDetails modules =
     Dict.update function.moduleDir
         (\maybeExistingDetails ->
             case maybeExistingDetails of
                 Just existingDetails ->
-                    Just (Dict.insert function.name { type_ = function.type_, inputFile = inputDetails } existingDetails)
-                    --Just
-                    --    (case ( existingDetails, function.type_ ) of
-                    --        ( JustContent content, Content.File.SingletonFunction ) ->
-                    --            JustContent content
-
-                    --        ( JustContent content, Content.File.ListItemFunction ) ->
-                    --            Both content (Dict.singleton function.name inputDetails)
-
-                    --        ( JustListItems listItems, Content.File.SingletonFunction ) ->
-                    --            Both ( function.name, inputDetails ) listItems
-
-                    --        ( JustListItems listItems, Content.File.ListItemFunction ) ->
-                    --            JustListItems (Dict.union listItems (Dict.singleton function.name inputDetails))
-
-                    --        ( Both content listItems, Content.File.SingletonFunction ) ->
-                    --            Both content listItems
-
-                    --        ( Both content listItems, Content.File.ListItemFunction ) ->
-                    --            Both content (Dict.union listItems (Dict.singleton function.name inputDetails))
-                    --    )
+                    Just (Dict.insert function.name { type_ = function.type_, inputFilePath = inputDetails.filePath, frontmatter = inputDetails.fileFrontmatter } existingDetails)
 
                 Nothing ->
-                    Just (Dict.singleton function.name { type_ = function.type_, inputFile = inputDetails })
-                    --case function.type_ of
-                    --    Content.File.SingletonFunction ->
-                    --        Just (JustContent ( function.name, inputDetails ))
-
-                    --    Content.File.ListItemFunction ->
-                    --        Just (JustListItems (Dict.singleton function.name inputDetails))
-        ) modules
+                    Just (Dict.singleton function.name { type_ = function.type_, inputFilePath = inputDetails.filePath, frontmatter = inputDetails.fileFrontmatter })
+        )
+        modules

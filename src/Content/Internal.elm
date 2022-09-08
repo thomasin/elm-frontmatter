@@ -19,6 +19,6 @@ node =
 
 type FileName
     = Hidden
+    | Empty
     | Bracketed String
     | Normal String
-

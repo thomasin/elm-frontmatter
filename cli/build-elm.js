@@ -5,13 +5,18 @@ const spawn = require('cross-spawn')
 const getExecutable = require('elm-tooling/getExecutable')
 
 
-async function buildElm(config, dirPath) {
+async function buildElm(rejectProgram, config, outputDir, dirPath) {
     await fs.mkdir(path.join(dirPath, './cli/'))
 
-    await combineDependencies(config, dirPath)
+    try {
+        await combineDependencies(config, dirPath)
+    } catch (err) {
+        rejectProgram(err)
+        return
+    }
 
     // Copy the user created Content.elm file into the temporary directory.
-    await fs.copy(path.join(process.cwd(), config.inputDir, './Content.elm'), path.join(dirPath, './src/Content.elm'))
+    await fs.copy(path.join(outputDir, './Content.elm'), path.join(dirPath, './src/Content.elm'))
 
     // Copy the node package Elm code into the temporary directory.
     await fs.copy(path.join(__dirname, './elm/src/'), path.join(dirPath, './cli/elm/src/'))
@@ -21,12 +26,17 @@ async function buildElm(config, dirPath) {
 
     // Copy the Elm package files into the temporary directory.
     await fs.copy(path.join(__dirname, '../src/Content/'), path.join(dirPath, './src/Content/'))
+    await fs.copy(path.join(__dirname, '../src/String/'), path.join(dirPath, './src/String/'))
 
     try {
-        spawn.sync('elm', ['make', './elm/src/Main.elm', '--output', '../elm.js'], {
+        const result = spawn.sync('elm', ['make', './elm/src/Main.elm', '--output', '../elm.js'], {
             cwd: path.join(dirPath, 'cli'),
             stdio: ['ignore', 'ignore', 'inherit']
         })
+
+        if (result.status) {
+            throw new Error()
+        }
 
         const { Elm } = require(path.join(dirPath, './elm.js'))
 
@@ -36,20 +46,21 @@ async function buildElm(config, dirPath) {
             }
         })
     } catch (err) {
-        console.error(err)
-        throw new Error("Error compiling Elm program")
+        rejectProgram("Error compiling Elm program")
     }
 }
 
 
 async function combineDependencies(config, dirPath) {
-    const userElmJsonFile = await fs.readFile(path.join(process.cwd(), config.inputDir, './elm.json'))
+    const userElmJsonFile = await fs.readFile(path.join(process.cwd(), config.elmJsonDir, './elm.json'))
     const userElmJson = JSON.parse(userElmJsonFile)
 
     const cliElmJsonFile = await fs.readFile(path.join(__dirname, './elm.json'))
     const cliElmJson = JSON.parse(cliElmJsonFile)
 
-    console.log(cliElmJson)
+    if (!userElmJson.dependencies.direct) {
+        throw new Error(`elm.json file at '${path.join(process.cwd(), config.elmJsonDir, './elm.json')}' has no direct dependencies. Make sure it is not a package elm.json`)
+    }
 
     try {
         const elmJsonAbsolutePath = await getElmJsonAbsolutePath()
@@ -59,8 +70,6 @@ async function combineDependencies(config, dirPath) {
                 'solve',
                 '--extra',
                 ...Object.entries(userElmJson.dependencies.direct).map(([key, value]) => {
-                    console.log(key)
-                    console.log(value)
                     return `${key}@${value}`
                 }),
                 '--',
@@ -72,16 +81,10 @@ async function combineDependencies(config, dirPath) {
             }
         )
 
-        console.dir({ ...cliElmJson, dependencies: JSON.parse(result.stdout) })
-
         await fs.writeFile(path.join(dirPath, './cli/elm.json'), JSON.stringify({ ...cliElmJson, dependencies: JSON.parse(result.stdout) }))
     } catch (err) {
-        console.error(err)
-        throw new Error("Error compiling Elm program")
+        throw new Error("Error compiling Elm program", err)
     }
-
-    // Copy the node package elm.json into the temporary directory.
-   
 }
 
 

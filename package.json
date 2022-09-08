@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "chalk": "^4.1.2",
+    "command-line-args": "^5.2.1",
     "cross-spawn": "^7.0.3",
     "elm-test": "^0.19.1-revision7",
     "elm-tooling": "^1.8.0",
@@ -25,8 +26,12 @@
     "temp": "^0.9.4"
   },
   "devDependencies": {
-    "elm-format": "^0.8.5",
+    "elm-format": "*",
     "elm-json": "^0.2.12",
-    "elm-review": "^2.7.0"
+    "elm-review": "^2.7.0",
+    "parcel": "^2.7.0"
+  },
+  "peerDependencies": {
+    "elm-format": "^0.8.5"
   }
 }

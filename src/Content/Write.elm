@@ -1,4 +1,4 @@
-module Content.Write exposing (Writer(..), concat, record, toFileString)
+module Content.Write exposing (Writer(..), hasDeclarations, concat, record, toFileString)
 
 import Basics.Extra as Basics
 import Content.Decode
@@ -10,11 +10,11 @@ import Elm.Syntax.Expression
 import Elm.Syntax.Import
 import Elm.Syntax.Module
 import Elm.Syntax.TypeAnnotation
-import Elm.Writer
-import Path
+import Content.ElmSyntaxWriter
 import Json.Decode
 import Json.Encode
 import List.Extra as List
+import Path
 import String.Extra as String
 
 
@@ -27,10 +27,20 @@ type Writer
         }
 
 
+hasDeclarations : Writer -> Bool
+hasDeclarations (Writer writer) =
+    case writer.declarations of
+        ( [], [] ) ->
+            False
+
+        _ ->
+            True
+
+
 toFileString : List String -> Writer -> String
 toFileString moduleDir (Writer writer) =
-    Elm.Writer.write
-        (Elm.Writer.writeFile
+    Content.ElmSyntaxWriter.write
+        (Content.ElmSyntaxWriter.writeFile
             { moduleDefinition =
                 Content.Internal.node
                     (Elm.Syntax.Module.NormalModule
@@ -60,23 +70,24 @@ record args =
         functionType =
             String.classify args.functionType
 
-        (Content.Decode.Internal.Declaration frontmatterDecoder) =
-            args.decoder
-
-        typeDeclaration : { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration }
-        typeDeclaration =
-            toTypeDeclaration functionType args.decoder
-
         functionDeclarationResult : Result Json.Decode.Error { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration, actions : List { with : String, args : Json.Encode.Value } }
         functionDeclarationResult =
             toFunctionDeclaration functionName functionType args.inputFilePath args.frontmatter args.documentation args.decoder
     in
     case functionDeclarationResult of
         Ok functionDeclaration ->
+            let
+                typeDeclaration : { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration }
+                typeDeclaration =
+                    toTypeDeclaration functionType args.inputFilePath args.decoder
+
+                (Content.Decode.Internal.Declaration frontmatterDecoder) =
+                    args.decoder
+            in
             Ok <|
                 Writer
                     { exposed = [ typeDeclaration.exposed, functionDeclaration.exposed ]
-                    , imports = frontmatterDecoder.imports
+                    , imports = frontmatterDecoder.imports { inputFilePath = args.inputFilePath }
                     , declarations =
                         ( [ typeDeclaration.declaration ]
                         , [ functionDeclaration.declaration ]
@@ -109,8 +120,8 @@ concat writers =
         }
 
 
-toTypeDeclaration : String -> Content.Decode.FrontmatterDecoder -> { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration }
-toTypeDeclaration typeName (Content.Decode.Internal.Declaration frontmatterDecoder) =
+toTypeDeclaration : String -> Path.Path -> Content.Decode.FrontmatterDecoder -> { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration }
+toTypeDeclaration typeName inputFilePath (Content.Decode.Internal.Declaration frontmatterDecoder) =
     { exposed = Elm.Syntax.Exposing.TypeOrAliasExpose typeName
     , declaration =
         Elm.Syntax.Declaration.AliasDeclaration
@@ -118,14 +129,14 @@ toTypeDeclaration typeName (Content.Decode.Internal.Declaration frontmatterDecod
             , name = Content.Internal.node typeName
             , generics = []
             , typeAnnotation =
-                Content.Internal.node (Elm.Syntax.TypeAnnotation.Record frontmatterDecoder.typeAnnotation)
+                Content.Internal.node (Elm.Syntax.TypeAnnotation.Record (frontmatterDecoder.typeAnnotation { inputFilePath = inputFilePath }))
             }
     }
 
 
 toFunctionDeclaration : String -> String -> Path.Path -> Json.Decode.Value -> Maybe String -> Content.Decode.FrontmatterDecoder -> Result Json.Decode.Error { exposed : Elm.Syntax.Exposing.TopLevelExpose, declaration : Elm.Syntax.Declaration.Declaration, actions : List { with : String, args : Json.Encode.Value } }
-toFunctionDeclaration functionName functionType inputPath rawContent documentation (Content.Decode.Internal.Declaration frontmatterDecoder) =
-    case Json.Decode.decodeValue (frontmatterDecoder.jsonDecoder { inputFilePath = inputPath }) rawContent of
+toFunctionDeclaration functionName functionType inputFilePath rawContent documentation (Content.Decode.Internal.Declaration frontmatterDecoder) =
+    case Json.Decode.decodeValue (frontmatterDecoder.jsonDecoder { inputFilePath = inputFilePath }) rawContent of
         Ok decodedFields ->
             Ok
                 { exposed = Elm.Syntax.Exposing.FunctionExpose functionName

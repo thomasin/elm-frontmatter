@@ -1,4 +1,4 @@
-module Content.Output exposing (Output(..), Message(..), encodeMessages, map, sequence)
+module Output exposing (Message(..), Output(..), encodeMessages, sequence)
 
 
 type Message
@@ -24,19 +24,6 @@ type Output a
     = Continue (List Message) a
     | Ignore (List Message)
     | Terminate String
-
-
-map : (a -> b) -> Output a -> Output b
-map func output =
-    case output of
-        Continue messages a ->
-            Continue messages (func a)
-
-        Ignore messages ->
-            Ignore messages
-    
-        Terminate str ->
-            Terminate str
 
 
 sequence : List (Output a) -> Output (List a)

@@ -1,8 +1,8 @@
-module Content.Decode.Image exposing (CopyArgs, Manipulation, process, batchProcess, width)
+module Content.Decode.Image exposing (Decoder, ActionDetails, CopyArgs, Manipulation, process, batchProcess, width)
 
 {-|
 
-@docs CopyArgs, Manipulation, process, batchProcess, width
+@docs Decoder, CopyArgs, Manipulation, ActionDetails, process, batchProcess, width
 
 -}
 
@@ -34,10 +34,22 @@ type alias CopyArgs =
     }
 
 
+{-| An image decoder
+-}
+type alias Decoder =
+    Content.Decode.Decoder ( ActionDetails, List ActionDetails )
+
+
 {-| An image manipulation
 -}
 type alias Manipulation =
     Content.Decode.Image.Internal.Manipulation
+
+
+{-| Image action details
+-}
+type alias ActionDetails =
+    Content.Decode.Image.Internal.ActionDetails
 
 
 {-| Copy and modify an image
@@ -49,10 +61,10 @@ type alias Manipulation =
         , publicDirectory = "/image-gen/"
         }
 
-    decoder : Content.Type.Path -> Content.Decode.Declaration
+    decoder : Content.Type.Path -> Content.Decode.QueryResult
     decoder typePath =
         case typePath of
-            Content.Type.Single "Content.About" ->
+            Content.Type.Single [ "Content", "About" ] ->
                 Content.Decode.decode
                     [ Content.Decode.attribute "title" Content.Decode.string
                     , Content.Decode.attribute "banner"
@@ -77,18 +89,18 @@ type alias Manipulation =
     -}
 
 -}
-process : CopyArgs -> List Content.Decode.Image.Internal.Manipulation -> Content.Decode.Decoder ( Content.Decode.Image.Internal.ActionDetails, List Content.Decode.Image.Internal.ActionDetails )
+process : CopyArgs -> List Manipulation -> Decoder
 process copyArgs manipulations =
     Content.Decode.Internal.Decoder
         { typeAnnotation = Content.Decode.Syntax.string.typeAnnotation
-        , imports = []
+        , imports = always []
         , jsonDecoder =
-            \args ->
+            \context ->
                 Json.Decode.string
-                    |> Json.Decode.andThen (Content.Decode.Image.Internal.createActions args copyArgs (Content.Decode.Image.Internal.Single manipulations))
+                    |> Json.Decode.andThen (Content.Decode.Image.Internal.createActions context copyArgs (Content.Decode.Image.Internal.Single manipulations))
         , asExpression =
-            \( firstActionDetails, _ ) ->
-                Content.Decode.Syntax.string.expression
+            \context ( (Content.Decode.Image.Internal.ActionDetails firstActionDetails), _ ) ->
+                Content.Decode.Syntax.string.expression context
                     (Path.toString firstActionDetails.paths.rewritePath ++ Path.separator firstActionDetails.paths.rewritePath ++ firstActionDetails.paths.fileName)
         , actions =
             \( firstActionDetails, _ ) ->
@@ -108,10 +120,10 @@ process copyArgs manipulations =
         , publicDirectory = "/image-gen/"
         }
 
-    decoder : Content.Type.Path -> Content.Decode.Declaration
+    decoder : Content.Type.Path -> Content.Decode.QueryResult
     decoder typePath =
         case typePath of
-            Content.Type.Multiple "Content.About.People" ->
+            Content.Type.Collection [ "Content", "About", "People" ] ->
                 Content.Decode.decodeWithoutBody
                     [ Content.Decode.attribute "name" Content.Decode.string
                     , Content.Decode.attribute "position" Content.Decode.string
@@ -128,13 +140,13 @@ process copyArgs manipulations =
                 Content.Decode.ignore
 
     {-
-       type alias ListItem =
+       type alias CollectionItem =
            { name : String
            , position : String
            , thumbnail : ( ( String, String ), List ( String, String ) )
            }
 
-       person1 : ListItem
+       person1 : CollectionItem
        person1 =
            { name = "Person 1", position = "Astronaut"
            , thumbnail =
@@ -147,10 +159,10 @@ process copyArgs manipulations =
     -}
 
 -}
-batchProcess : CopyArgs -> ( String, List Manipulation ) -> List ( String, List Manipulation ) -> Content.Decode.Decoder ( Content.Decode.Image.Internal.ActionDetails, List Content.Decode.Image.Internal.ActionDetails )
+batchProcess : CopyArgs -> ( String, List Manipulation ) -> List ( String, List Manipulation ) -> Decoder
 batchProcess copyArgs firstManipulation manipulations =
     let
-        syntax : Content.Decode.Syntax.Syntax ( ( String, String ), List ( String, String ) )
+        syntax : Content.Decode.Syntax.Syntax { inputFilePath : Path.Path } ( ( String, String ), List ( String, String ) )
         syntax =
             Content.Decode.Syntax.tuple2
                 ( Content.Decode.Syntax.tuple2 ( Content.Decode.Syntax.string, Content.Decode.Syntax.string )
@@ -160,19 +172,19 @@ batchProcess copyArgs firstManipulation manipulations =
     in
     Content.Decode.Internal.Decoder
         { typeAnnotation = syntax.typeAnnotation
-        , imports = []
+        , imports = always []
         , jsonDecoder =
-            \args ->
+            \context ->
                 Json.Decode.string
-                    |> Json.Decode.andThen (Content.Decode.Image.Internal.createActions args copyArgs (Content.Decode.Image.Internal.Batch firstManipulation manipulations))
+                    |> Json.Decode.andThen (Content.Decode.Image.Internal.createActions context copyArgs (Content.Decode.Image.Internal.Batch firstManipulation manipulations))
         , asExpression =
-            \( firstActionDetails, restActionDetails ) ->
-                syntax.expression
+            \context ( (Content.Decode.Image.Internal.ActionDetails firstActionDetails), restActionDetails ) ->
+                syntax.expression context
                     ( ( firstActionDetails.paths.modifierName
                       , Path.toString firstActionDetails.paths.rewritePath ++ Path.separator firstActionDetails.paths.rewritePath ++ firstActionDetails.paths.fileName
                       )
                     , List.map
-                        (\actionDetails ->
+                        (\(Content.Decode.Image.Internal.ActionDetails actionDetails) ->
                             ( actionDetails.paths.modifierName
                             , Path.toString actionDetails.paths.rewritePath ++ Path.separator actionDetails.paths.rewritePath ++ actionDetails.paths.fileName
                             )

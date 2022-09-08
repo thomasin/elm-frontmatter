@@ -1,4 +1,4 @@
-module Content.Decode.Internal exposing (Attribute(..), Declaration(..), DeclarationResult(..), DecodedAttribute, Decoder(..))
+module Content.Decode.Internal exposing (DecoderContext, Attribute(..), Declaration(..), DeclarationResult(..), DecodedAttribute, Decoder(..), decoderToSyntax, escapedString)
 
 import Elm.Syntax.Expression
 import Elm.Syntax.Import
@@ -10,9 +10,9 @@ import Path
 
 type Declaration
     = Declaration
-        { typeAnnotation : Elm.Syntax.TypeAnnotation.RecordDefinition
-        , imports : List Elm.Syntax.Import.Import
-        , jsonDecoder : { inputFilePath : Path.Path } -> Json.Decode.Decoder (List { keyName : String, expression : Elm.Syntax.Expression.Expression, actions : List { with : String, args : Json.Encode.Value } })
+        { typeAnnotation : DecoderContext -> Elm.Syntax.TypeAnnotation.RecordDefinition
+        , imports : DecoderContext -> List Elm.Syntax.Import.Import
+        , jsonDecoder : DecoderContext -> Json.Decode.Decoder (List { keyName : String, expression : Elm.Syntax.Expression.Expression, actions : List { with : String, args : Json.Encode.Value } })
         }
 
 
@@ -30,17 +30,36 @@ type alias DecodedAttribute =
 
 type Attribute
     = Attribute
-        { typeAnnotation : Elm.Syntax.TypeAnnotation.RecordField
-        , imports : List Elm.Syntax.Import.Import
-        , jsonDecoder : { inputFilePath : Path.Path } -> Json.Decode.Decoder DecodedAttribute
+        { typeAnnotation : DecoderContext -> Elm.Syntax.TypeAnnotation.RecordField
+        , imports : DecoderContext -> List Elm.Syntax.Import.Import
+        , jsonDecoder : DecoderContext -> Json.Decode.Decoder DecodedAttribute
         }
 
 
 type Decoder a
     = Decoder
-        { typeAnnotation : Elm.Syntax.TypeAnnotation.TypeAnnotation
-        , imports : List Elm.Syntax.Import.Import
-        , jsonDecoder : { inputFilePath : Path.Path } -> Json.Decode.Decoder a
-        , asExpression : a -> Elm.Syntax.Expression.Expression
+        { typeAnnotation : DecoderContext -> Elm.Syntax.TypeAnnotation.TypeAnnotation
+        , imports : DecoderContext -> List Elm.Syntax.Import.Import
+        , jsonDecoder : DecoderContext -> Json.Decode.Decoder a
+        , asExpression : DecoderContext -> a -> Elm.Syntax.Expression.Expression
         , actions : a -> List { with : String, args : Json.Encode.Value }
         }
+
+
+type alias DecoderContext =
+    { inputFilePath : Path.Path
+    }
+
+
+escapedString : String -> String
+escapedString value =
+    (String.replace "\"" "\\\"" (String.replace "\\" "\\\\" value))
+
+
+decoderToSyntax : Decoder value -> { typeAnnotation : DecoderContext -> Elm.Syntax.TypeAnnotation.TypeAnnotation, imports : DecoderContext -> List Elm.Syntax.Import.Import, expression : DecoderContext -> value -> Elm.Syntax.Expression.Expression }
+decoderToSyntax (Decoder decoder) =
+    { typeAnnotation = decoder.typeAnnotation
+    , imports = decoder.imports
+    , expression = decoder.asExpression
+    }
+

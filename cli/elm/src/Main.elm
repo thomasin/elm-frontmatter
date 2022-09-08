@@ -1,23 +1,30 @@
 module Main exposing (main)
 
 import Content
-import Content.Decode.File
 import Content.Function
-import Content.Output
-import Parser
-import Path
-import Path.Platform
+import Content.Module
+import Content.Type
+import Content.Decode
 import Dict
 import Json.Decode
 import Json.Decode.Extra
 import Modules
+import Output
+import Path
+import Path.Platform
 import Platform
-import Set
 import Ports
+import Set
+
+
+contentDecoder : Content.Type.Path -> Content.Decode.QueryResult
+contentDecoder =
+    Content.decoder
+    --always Content.Decode.ignore
 
 
 type Msg
-    = Add Content.Decode.File.InputFile
+    = Add Modules.InputFile
     | Problem String
     | EffectsPerformed String
     | NoMoreInputFiles Int
@@ -50,6 +57,41 @@ init flags =
     )
 
 
+functionPathResultToOutput : Result Content.Function.PathError Content.Function.Function -> Output.Output Content.Function.Function
+functionPathResultToOutput functionOutput =
+    case functionOutput of
+        Ok function ->
+            Output.Continue [] function
+
+        Err Content.Function.PathIsHidden ->
+            Output.Ignore [ Output.Info "Ignoring hidden file" ]
+
+        Err Content.Function.PathIsEmpty ->
+            Output.Ignore []
+
+        Err (Content.Function.PathIsInvalid message) ->
+            Output.Terminate message
+
+
+moduleGenerationToOutput : List String -> Result Content.Module.GenerationError Content.Module.Module -> Output.Output Content.Module.Module
+moduleGenerationToOutput moduleDir generationOutput =
+    case generationOutput of
+        Ok generatedModule ->
+            Output.Continue [ Output.Success ("✨ Successfully generated \"" ++ String.join "." moduleDir ++ "\"") ] generatedModule
+
+        Err (Content.Module.NoMatchingDecoder typePath) ->
+            Output.Terminate ("No decoder found for \"" ++ Content.Type.toString typePath ++ "\"")
+
+        Err Content.Module.ModuleIsEmpty ->
+            Output.Ignore [ Output.Info ("🌥  Ignoring empty module \"" ++ String.join "." moduleDir ++ "\"") ]
+
+        Err (Content.Module.InvalidOutputPath pathStr) ->
+            Output.Terminate ("Somehow the invalid output path \"" ++ pathStr ++ "\" has been generated")
+
+        Err (Content.Module.DecoderError typePath decodeError) ->
+            Output.Terminate ("Error decoding \"" ++ Content.Type.toString typePath ++ "\"\n" ++ Json.Decode.errorToString decodeError)
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -63,37 +105,45 @@ update msg model =
             )
 
         NoMoreInputFiles _ ->
-            case Content.Output.sequence (List.map (Content.Decode.File.toFile Content.decoder) (Modules.modulesToList model.modulesContents)) of
-                Content.Output.Continue messages allFiles ->
+            let
+                generatedModules : List (Output.Output Content.Module.Module)
+                generatedModules =
+                    List.map (\undecodedModule ->
+                        moduleGenerationToOutput undecodedModule.dir (Content.Module.generate model.platform contentDecoder undecodedModule)
+                    ) (Modules.modulesToList model.modulesContents)
+                    
+            in
+            case Output.sequence generatedModules of
+                Output.Continue messages allFiles ->
                     ( { model
-                      | fileEffectsPerformed = Set.fromList (List.map .filePath allFiles)
-                      , outputFiles = List.map (\file -> { filePath = file.filePath, fileContents = file.fileContents }) allFiles
+                        | fileEffectsPerformed = Set.fromList (List.map (Path.toString << .path) allFiles)
+                        , outputFiles = List.map (\file -> { filePath = Path.toString file.path, fileContents = file.contents }) allFiles
                       }
                     , Cmd.batch
-                        [ Ports.show (Content.Output.encodeMessages messages)
-                        , Cmd.batch (List.map (\file -> Ports.performEffect { filePath = file.filePath, actions = file.actions }) allFiles)
+                        [ Ports.show (Output.encodeMessages messages)
+                        , Cmd.batch (List.map (\file -> Ports.performEffect { filePath = Path.toString file.path, actions = file.actions }) allFiles)
                         ]
                     )
 
-                Content.Output.Ignore messages ->
-                    ( model, Ports.show (Content.Output.encodeMessages messages) )
+                Output.Ignore messages ->
+                    ( model, Ports.show (Output.encodeMessages messages) )
 
-                Content.Output.Terminate message ->
+                Output.Terminate message ->
                     ( model, Ports.terminate message )
 
         Add inputFile ->
-            case Content.Function.fromPath inputFile.filePath of
-                Content.Output.Continue messages functionDetails ->
+            case functionPathResultToOutput (Content.Function.fromPath inputFile.filePath) of
+                Output.Continue messages functionDetails ->
                     ( { model | modulesContents = Modules.newFunction functionDetails inputFile model.modulesContents }
-                    , Ports.show (Content.Output.encodeMessages messages)
+                    , Ports.show (Output.encodeMessages messages)
                     )
 
-                Content.Output.Ignore messages ->
+                Output.Ignore messages ->
                     ( model
-                    , Ports.show (Content.Output.encodeMessages messages)
+                    , Ports.show (Output.encodeMessages messages)
                     )
 
-                Content.Output.Terminate message ->
+                Output.Terminate message ->
                     ( model
                     , Ports.terminate message
                     )
@@ -107,9 +157,9 @@ update msg model =
 addRawFile : Path.Platform -> Json.Decode.Value -> Msg
 addRawFile platform jsValue =
     let
-        decodeInputFile : Json.Decode.Decoder Content.Decode.File.InputFile
+        decodeInputFile : Json.Decode.Decoder Modules.InputFile
         decodeInputFile =
-            Json.Decode.map2 Content.Decode.File.InputFile
+            Json.Decode.map2 Modules.InputFile
                 (Json.Decode.field "filePath"
                     (Json.Decode.string
                         |> Json.Decode.andThen
@@ -117,8 +167,7 @@ addRawFile platform jsValue =
                     )
                 )
                 (Json.Decode.field "fileFrontmatter" Json.Decode.value)
-
-    in  
+    in
     case Json.Decode.decodeValue decodeInputFile jsValue of
         Ok newInputFile ->
             Add newInputFile

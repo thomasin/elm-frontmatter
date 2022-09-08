@@ -10,41 +10,41 @@ const spawn = require('cross-spawn')
 var temp = require('temp').track()
 const chalk = require('chalk')
 const prompts = require('prompts')
+const commandLineArgs = require('command-line-args')
 
 const buildElm = require('./cli/build-elm.js')
 const plugins = require('./cli/plugins.js')
 
 //
 
-function getConfig() {
-    const defaultConfig = {
-        inputDir: './content/',
-        inputGlob: '**/*.md',
-        elmDir: './src/',
-    }
+const args = commandLineArgs([
+  { name: 'src', defaultOption: true },
+  { name: 'glob', type: String, defaultValue: '**/*.md' },
+  { name: 'elm-json-dir', type: String, defaultValue: '.', description: `The folder containing your app's elm.json file` },
+  { name: 'output-dir', type: String, defaultValue: '.', description: `The folder containing your app's elm.json file` },
+  { name: 'yes', alias: 'y', type: Boolean },
+])
 
-    try {
-        const userProvidedConfig = require(path.join(process.cwd(), './frontmatter.config.js'))
-        return { ...defaultConfig, ...userProvidedConfig }
-    } catch {
-        return defaultConfig
-    }
+const config = {
+    inputDir: args.src ? args.src : '.',
+    inputGlob: args.glob,
+    elmJsonDir: args['elm-json-dir'],
 }
-
-
-const config = getConfig()
-
 
 async function fileGlob() {
     return new Promise(async (resolveProgram, rejectProgram) => {
+        const userElmJsonFile = await fs.readFile(path.join(process.cwd(), config.elmJsonDir, './elm.json'))
+        const userElmJson = JSON.parse(userElmJsonFile) 
+        const outputDir = args['output-dir'] || path.join(process.cwd(), config.elmJsonDir, userElmJson['source-directories'][0])
+
         const absoluteFilePaths = glob.sync(path.join(process.cwd(), config.inputDir, config.inputGlob), {})
         const tempDir = await temp.mkdir('elm-frontmatter')
-        const elmApp = await buildElm(config, tempDir)
+        const elmApp = await buildElm(rejectProgram, config, outputDir, tempDir)
 
+        if (!elmApp) { return }
 
         /* End the program */
         elmApp.ports.terminate.subscribe(rejectProgram)
-
 
         /* Show a message */
         elmApp.ports.show.subscribe((messages) => {
@@ -69,19 +69,19 @@ async function fileGlob() {
                     return fs.outputFile(path.join(tempDir, '/output/', filePath), fileContents, { encoding: 'utf8' })
                 }))
 
-                const response = await prompts({
+                const response = args.yes || await prompts({
                     type: 'confirm',
                     name: 'accepted',
-                    message: 'Overwrite the ' + path.join(process.cwd(), config.elmDir, 'Content') + ' directory?'
+                    message: 'Overwrite the ' + path.join(outputDir, 'Content') + ' directory?'
                 })
 
-                if (response.accepted) {
-                    await fs.emptyDir(path.join(process.cwd(), config.elmDir, 'Content'))
-                    await fs.copy(path.join(tempDir, '/output/'), path.join(process.cwd(), config.elmDir))
+                if (args.yes || response.accepted) {
+                    await fs.emptyDir(path.join(outputDir, 'Content'))
+                    await fs.copy(path.join(tempDir, '/output/'), path.join(outputDir))
 
                     console.log(chalk.bold.green("\nAll files written ✍️"))
 
-                    const result = spawn.sync('npx', ['elm-format', '--elm-version=0.19', '--yes', path.join(process.cwd(), config.elmDir, 'Content')], {
+                    const result = spawn.sync('npx', ['elm-format', '--elm-version=0.19', '--yes', path.join(outputDir, 'Content')], {
                         stdio: ['ignore', 'ignore', 'ignore']
                     })
                 } else {
@@ -95,6 +95,7 @@ async function fileGlob() {
 
         /* Perform a side effect like copying/resizing images */
         elmApp.ports.performEffect.subscribe(async (file) => {
+            // To-Do: Ask for permission to do file generation
             try {
                 await Promise.all(file.actions.map((action) => {
                     if (plugins[action.with]) {

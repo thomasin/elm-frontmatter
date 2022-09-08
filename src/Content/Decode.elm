@@ -1,25 +1,27 @@
 module Content.Decode exposing
-    ( DecoderResult, FrontmatterDecoder, frontmatter, frontmatterWithoutBody, use, throw, ignore
-    , Attribute, attribute
-    , Decoder, string, int, float, datetime, anonymousRecord, list, link
+    ( QueryResult, FrontmatterDecoder, fromSyntax, frontmatter, frontmatterWithoutBody, throw, ignore
+    , Attribute, attribute, renameTo
+    , Decoder, string, int, float, datetime, anonymousRecord, list, reference
+    , DecodedAttribute
     )
 
-{-|
+{-| # Writing decoders
+
 
 
 # Declaration
 
-@docs DecoderResult, FrontmatterDecoder, frontmatter, frontmatterWithoutBody, use, throw, ignore
+@docs QueryResult, FrontmatterDecoder, frontmatter, frontmatterWithoutBody, throw, ignore
 
 
 # Attribute
 
-@docs Attribute, attribute
+@docs DecodedAttribute, Attribute, attribute, renameTo
 
 
 # Basic decoders
 
-@docs Decoder, string, int, float, datetime, anonymousRecord, list, link
+@docs Decoder, fromSyntax, string, int, float, datetime, anonymousRecord, list, reference
 
 -}
 
@@ -27,8 +29,6 @@ import Content.Decode.Internal
 import Content.Decode.Syntax
 import Content.Function
 import Content.Internal
-import Content.Output
-import Path
 import Content.Type
 import Elm.Syntax.Expression
 import Elm.Syntax.ModuleName
@@ -37,6 +37,7 @@ import Json.Decode
 import Json.Decode.Extra
 import List.Extra as List
 import String.Extra as String
+import Path
 import Time
 
 
@@ -52,22 +53,21 @@ type alias FrontmatterDecoder =
 
 {-| The result of trying to find a decoder for a file
 -}
-type alias DecoderResult =
+type alias QueryResult =
     Content.Decode.Internal.DeclarationResult
-
+    
 
 {-| Decode a frontmatter file. This will ignore the file body.
 
 
-    decoder : Content.Type.Path -> Content.Decode.DecoderResult
+    decoder : Content.Type.Path -> Content.Decode.QueryResult
     decoder typePath =
         case typePath of
-            Content.Type.Single "Content.Index" ->
-                Content.Decode.use <|
-                    Content.Decode.frontmatterWithoutBody
-                        [ Content.Decode.attribute "title" Content.Decode.string
-                        , Content.Decode.attribute "description" Content.Decode.string
-                        ]
+            Content.Type.Single [ "Content", "Index" ] ->
+                Content.Decode.frontmatterWithoutBody
+                    [ Content.Decode.attribute "title" Content.Decode.string
+                    , Content.Decode.attribute "description" Content.Decode.string
+                    ]
 
             _ ->
                 Content.Decode.throw
@@ -86,34 +86,37 @@ type alias DecoderResult =
     -}
 
 -}
-frontmatterWithoutBody : List Attribute -> FrontmatterDecoder
+frontmatterWithoutBody : List Attribute -> QueryResult
 frontmatterWithoutBody attributes =
-    Content.Decode.Internal.Declaration
-        { typeAnnotation =
-            List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node attribute_.typeAnnotation) attributes
-        , imports =
-            List.unique (List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.imports) attributes))
-        , jsonDecoder =
-            \args ->
-                Json.Decode.field "data"
-                    (Json.Decode.Extra.combine
-                        (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.jsonDecoder args) attributes)
-                    )
-        }
+    Content.Decode.Internal.Found
+        ( Content.Decode.Internal.Declaration
+            { typeAnnotation =
+                \args ->
+                    List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node (attribute_.typeAnnotation args)) attributes
+            , imports =
+                \args ->
+                    List.unique (List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> (attribute_.imports args)) attributes))
+            , jsonDecoder =
+                \args ->
+                    Json.Decode.field "data"
+                        (Json.Decode.Extra.combine
+                            (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.jsonDecoder args) attributes)
+                        )
+            }
+        )
 
 
 {-| Decode a frontmatter file. This will include the file body as a `body` field in the generated record.
+    The first argument is the type that the body will be decoded as. Common options would be `Content.Decode.string` or `Content.Decode.Markdown.decode`
 
-
-    decoder : Content.Type.Path -> Content.Decode.DecoderResult
+    decoder : Content.Type.Path -> Content.Decode.QueryResult
     decoder typePath =
         case typePath of
-            Content.Type.Single "Content.Index" ->
-                Content.Decode.use <|
-                    Content.Decode.frontmatter
-                        [ Content.Decode.attribute "title" Content.Decode.string
-                        , Content.Decode.attribute "description" Content.Decode.string
-                        ]
+            Content.Type.Single [ "Content", "Index" ] ->
+                Content.Decode.frontmatter Content.Decode.string
+                    [ Content.Decode.attribute "title" Content.Decode.string
+                    , Content.Decode.attribute "description" Content.Decode.string
+                    ]
 
             _ ->
                 Content.Decode.throw
@@ -134,71 +137,73 @@ frontmatterWithoutBody attributes =
     -}
 
 -}
-frontmatter : List Attribute -> FrontmatterDecoder
-frontmatter attributes =
+frontmatter : Decoder value -> List Attribute -> QueryResult
+frontmatter bodyDecoder attributes =
     let
-        (Content.Decode.Internal.Decoder stringDecoder) =
-            string
+        (Content.Decode.Internal.Decoder bodyDecoder_) =
+            bodyDecoder
     in
-    Content.Decode.Internal.Declaration
-        { typeAnnotation =
-            List.append
-                (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node attribute_.typeAnnotation) attributes)
-                [ Content.Internal.node ( Content.Internal.node "body", Content.Internal.node stringDecoder.typeAnnotation ) ]
-        , imports =
-            List.unique (List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.imports) attributes))
-        , jsonDecoder =
-            \args ->
-                Json.Decode.Extra.combine
-                    (List.append
-                        (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Json.Decode.field "data" (attribute_.jsonDecoder args)) attributes)
-                        [ Json.Decode.map (\value -> { keyName = "body", expression = stringDecoder.asExpression value, actions = [] })
-                            (Json.Decode.field "content" (stringDecoder.jsonDecoder args))
-                        ]
-                    )
-        }
-
-
-{-| If this is returned with a `FrontmatterDecoder` from the main `decoder` function it will
-apply the frontmatter decoder to the matched file.
-
-    decoder : Content.Type.Path -> Content.Decode.DecoderResult
-    decoder typePath =
-        case typePath of
-            Content.Type.Single "Content.Index" ->
-                Content.Decode.use <|
-                    Content.Decode.frontmatterWithoutBody
-                        [ Content.Decode.attribute "title" Content.Decode.string
-                        , Content.Decode.attribute "description" Content.Decode.string
-                        ]
-
-            _ ->
-                Content.Decode.throw
-
--}
-use : FrontmatterDecoder -> DecoderResult
-use =
     Content.Decode.Internal.Found
+        ( Content.Decode.Internal.Declaration
+            { typeAnnotation =
+                \args ->
+                    List.append
+                        (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node ((attribute_.typeAnnotation args) )) attributes)
+                        [ Content.Internal.node ( Content.Internal.node "body", Content.Internal.node (bodyDecoder_.typeAnnotation args) ) ]
+            , imports =
+                \args ->
+                    List.unique (bodyDecoder_.imports args ++ List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> (attribute_.imports args)) attributes))
+            , jsonDecoder =
+                \args ->
+                    Json.Decode.Extra.combine
+                        (List.append
+                            (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Json.Decode.field "data" (attribute_.jsonDecoder args)) attributes)
+                            [ Json.Decode.map (\value -> { keyName = "body", expression = bodyDecoder_.asExpression args value, actions = [] })
+                                (Json.Decode.field "content" (bodyDecoder_.jsonDecoder args))
+                            ]
+                        )
+            }
+        )
+
+
+--| If this is returned with a `FrontmatterDecoder` from the main `decoder` function it will
+--apply the frontmatter decoder to the matched file.
+
+--    decoder : Content.Type.Path -> Content.Decode.QueryResult
+--    decoder typePath =
+--        case typePath of
+--            Content.Type.Single [ "Content", "Index" ] ->
+--                    Content.Decode.frontmatter Content.Decode.string
+--                        [ Content.Decode.attribute "title" Content.Decode.string
+--                        , Content.Decode.attribute "description" Content.Decode.string
+--                        ]
+
+--            _ ->
+--                Content.Decode.throw
+
+
+--using : FrontmatterDecoder -> QueryResult
+--using =
+--    Content.Decode.Internal.Found
 
 
 {-| If this is returned from the main `decoder` function it will throw an error.
 Useful when you want to ensure that all markdown files are handled.
 
-    decoder : Content.Type.Path -> Content.Decode.DecoderResult
+    decoder : Content.Type.Path -> Content.Decode.QueryResult
     decoder typePath =
         case typePath of
-            Content.Type.Single "Content.Index" ->
-                Content.Decode.use <|
-                    Content.Decode.frontmatterWithoutBody
-                        [ Content.Decode.attribute "title" Content.Decode.string
-                        , Content.Decode.attribute "description" Content.Decode.string
-                        ]
+            Content.Type.Single [ "Content", "Index" ] ->
+                Content.Decode.frontmatterWithoutBody
+                    [ Content.Decode.attribute "title" Content.Decode.string
+                    , Content.Decode.attribute "description" Content.Decode.string
+                    ]
 
             _ ->
                 Content.Decode.throw
 
 -}
-throw : DecoderResult
+throw : QueryResult
 throw =
     Content.Decode.Internal.NotFound { throw = True }
 
@@ -210,18 +215,17 @@ a matching decoder yet.
     decoder : Content.Type.Path -> Content.Decode.Declaration
     decoder typePath =
         case typePath of
-            Content.Type.Single "Content.Index" ->
-                Content.Decode.use <|
-                    Content.Decode.frontmatterWithoutBody
-                        [ Content.Decode.attribute "title" Content.Decode.string
-                        , Content.Decode.attribute "description" Content.Decode.string
-                        ]
+            Content.Type.Single [ "Content", "Index" ] ->
+                Content.Decode.frontmatterWithoutBody
+                    [ Content.Decode.attribute "title" Content.Decode.string
+                    , Content.Decode.attribute "description" Content.Decode.string
+                    ]
 
             _ ->
                 Content.Decode.ignore
 
 -}
-ignore : DecoderResult
+ignore : QueryResult
 ignore =
     Content.Decode.Internal.NotFound { throw = False }
 
@@ -243,7 +247,7 @@ type alias DecodedAttribute =
 
 
 {-| `attribute` is how you decode named YAML fields. They map
-1-1 to the generated Elm and can't be renamed. The fields
+1-1 to the generated Elm. The fields
 are generated in the order that they appear in the list.
 
     {- YAML:
@@ -255,7 +259,7 @@ are generated in the order that they appear in the list.
     Tea
     -}
 
-    Content.Decode.frontmatter
+    Content.Decode.frontmatter Content.Decode.string
         [ Content.Decode.attribute "title" Content.Decode.string
         , Content.Decode.attribute "description" Content.Decode.string
         ]
@@ -279,19 +283,45 @@ are generated in the order that they appear in the list.
 attribute : String -> Decoder a -> Attribute
 attribute keyName (Content.Decode.Internal.Decoder decoder) =
     Content.Decode.Internal.Attribute
-        { typeAnnotation = ( Content.Internal.node keyName, Content.Internal.node decoder.typeAnnotation )
-        , imports = decoder.imports
+        { typeAnnotation =
+            \args ->
+                ( Content.Internal.node (String.camelize keyName), Content.Internal.node (decoder.typeAnnotation args) )
+        , imports =
+            \args ->
+                decoder.imports args
         , jsonDecoder =
             \args ->
-                Json.Decode.map (\value -> { keyName = keyName, expression = decoder.asExpression value, actions = decoder.actions value })
+                Json.Decode.map (\value -> { keyName = (String.camelize keyName), expression = decoder.asExpression args value, actions = decoder.actions value })
                     (Json.Decode.field keyName (decoder.jsonDecoder args))
         }
 
 
-{-| Decode an anonymous record (We don't have typed records yet).
+{-| Rename an attribute! This means you can parse the same frontmatter
+    field into multiple Elm attributes.
+
+    Content.Decode.frontmatter Content.Decode.string
+        [ Content.Decode.attribute "title" Content.Decode.string
+        , Content.Decode.renameTo "slug" (Content.Decode.attribute "title" slugDecoder)
+        ]
+
+-}
+renameTo : String -> Attribute -> Attribute
+renameTo newName (Content.Decode.Internal.Attribute attribute_) =
+    Content.Decode.Internal.Attribute
+        { typeAnnotation =
+            \args ->
+                ( Content.Internal.node (String.camelize newName), Tuple.second (attribute_.typeAnnotation args) )
+        , imports = attribute_.imports
+        , jsonDecoder =
+            \args ->
+                Json.Decode.map (\decodedAttribute -> { decodedAttribute | keyName = String.camelize newName }) (attribute_.jsonDecoder args)
+        }
+
+
+{-| Decode an anonymous record (We don't have typed records).
 You have to create anonymous records with a list of `attribute`s.
 
-    Content.Decode.frontmatter
+    Content.Decode.frontmatter Content.Decode.string
         [ Content.Decode.attribute "title" Content.Decode.string
         , Content.Decode.attribute "recordtest"
             (Content.Decode.anonymousRecord
@@ -306,16 +336,18 @@ anonymousRecord : List Attribute -> Decoder (List DecodedAttribute)
 anonymousRecord attributes =
     Content.Decode.Internal.Decoder
         { typeAnnotation =
-            Elm.Syntax.TypeAnnotation.Record
-                (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node attribute_.typeAnnotation) attributes)
+            \args ->
+                Elm.Syntax.TypeAnnotation.Record
+                    (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node (attribute_.typeAnnotation args)) attributes)
         , imports =
-            List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.imports) attributes)
+            \args ->
+                List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.imports args) attributes)
         , jsonDecoder =
             \args ->
                 Json.Decode.Extra.combine
                     (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.jsonDecoder args) attributes)
         , asExpression =
-            \decodedList ->
+            \args decodedList ->
                 Elm.Syntax.Expression.RecordExpr
                     (List.map
                         (\decoded ->
@@ -333,15 +365,34 @@ anonymousRecord attributes =
 -- Decoders --
 
 
-{-| Decoders turn YAML data into Elm types and records
+{-| Decoders turn JSON frontmatter data into Elm types and records
 -}
 type alias Decoder a =
     Content.Decode.Internal.Decoder a
 
 
-{-| Create a decoder from a Syntax object.
+{-| Decoder context passed down. Contains the file path of the file currently being decoded.
 -}
-fromSyntax : Content.Decode.Syntax.Syntax a -> ({ inputFilePath : Path.Path } -> Json.Decode.Decoder a) -> Decoder a
+type alias Context =
+    Content.Decode.Internal.DecoderContext
+
+
+{-| Create a decoder from a Syntax object.
+    This lets you use custom JSON decoders to ensure the content you are receiving is valid.
+    The Syntax object passed should be the Syntax object matching the output type of your JSON decoder.
+
+    Content.Decode.fromSyntax Content.Decode.Syntax.int
+        ( Json.Decode.int
+            |> Json.Decode.andThen (\number ->
+                if number > 0 then
+                    Json.Decode.succeed number
+
+                else
+                    Json.Decode.fail "Only positive numbers supported"
+            )
+        )
+-}
+fromSyntax : Content.Decode.Syntax.Syntax Context a -> (Context -> Json.Decode.Decoder a) -> Decoder a
 fromSyntax syntax jsonDecoder =
     Content.Decode.Internal.Decoder
         { typeAnnotation = syntax.typeAnnotation
@@ -354,7 +405,7 @@ fromSyntax syntax jsonDecoder =
 
 {-| Decode strings
 
-    Content.Decode.frontmatter
+    Content.Decode.frontmatter Content.Decode.frontmatter
         [ Content.Decode.attribute "title" Content.Decode.string
         , Content.Decode.attribute "description" Content.Decode.string
         ]
@@ -368,7 +419,7 @@ string =
 
 {-| Decode ints
 
-    Content.Decode.frontmatter
+    Content.Decode.frontmatter Content.Decode.frontmatter
         [ Content.Decode.attribute "title" Content.Decode.string
         , Content.Decode.attribute "daysTillFullMoon" Content.Decode.int
         ]
@@ -382,7 +433,7 @@ int =
 
 {-| Decode floats
 
-    Content.Decode.frontmatter
+    Content.Decode.frontmatter Content.Decode.frontmatter
         [ Content.Decode.attribute "title" Content.Decode.string
         , Content.Decode.attribute "bankAccountDollars" Content.Decode.float
         ]
@@ -409,7 +460,7 @@ body text
 
 And a decoder
 
-    Content.Decode.frontmatter
+    Content.Decode.frontmatter Content.Decode.string
         [ Content.Decode.attribute "tomorrow" Content.Decode.datetime
         ]
 
@@ -453,16 +504,17 @@ body text
 
 And a decoder
 
-    Content.Decode.frontmatter
+    Content.Decode.frontmatter Content.Decode.string
         [ Content.Decode.attribute "strings" (Content.Decode.list Content.Decode.string)
-        , Content.Decode.attribute "people" (Content.Decode.list Content.Decode.link)
+        , Content.Decode.attribute "people"
+            (Content.Decode.list (Content.Decode.reference (Content.Type.Collection [ "Content", "About", "People" ]))
         ]
 
 This will generate the `Content/Index.elm` file
 
     type alias Content =
         { strings : List String
-        , people : List Content.About.People.ListItem
+        , people : List Content.About.People.CollectionItem
         , body : String
         }
 
@@ -476,8 +528,9 @@ This will generate the `Content/Index.elm` file
 -}
 list : Decoder a -> Decoder (List a)
 list (Content.Decode.Internal.Decoder decoder) =
-    fromSyntax (Content.Decode.Syntax.list (Content.Decode.Syntax.fromDecoder (Content.Decode.Internal.Decoder decoder)))
+    fromSyntax (Content.Decode.Syntax.list (Content.Decode.Internal.decoderToSyntax (Content.Decode.Internal.Decoder decoder)))
         (Json.Decode.list << decoder.jsonDecoder)
+
 
 
 {-| Links to another content record. Given a markdown file `index.md` containing
@@ -494,9 +547,9 @@ body text
 
 And a decoder
 
-    Content.Decode.frontmatter
-        [ Content.Decode.attribute "about" Content.Decode.link
-        , Content.Decode.attribute "person1" Content.Decode.link
+    Content.Decode.frontmatter Content.Decode.string
+        [ Content.Decode.attribute "about" (Content.Decode.reference (Content.Type.Single [ "Content", "About" ]))
+        , Content.Decode.attribute "person1" (Content.Decode.reference (Content.Type.Collection [ "Content", "About", "People" ]))
         ]
 
 This will generate the `Content/Index.elm` file
@@ -505,7 +558,7 @@ This will generate the `Content/Index.elm` file
 
     type alias Content =
         { about : Content.About.Content
-        , person1 : Content.About.People.ListItem
+        , person1 : Content.About.People.CollectionItem
         , body : String
         }
 
@@ -517,8 +570,8 @@ This will generate the `Content/Index.elm` file
         }
 
 -}
-link : Content.Type.Path -> Decoder ( Elm.Syntax.ModuleName.ModuleName, String )
-link typePath =
+reference : Content.Type.Path -> Decoder ( Elm.Syntax.ModuleName.ModuleName, String )
+reference typePath =
     let
         typeName : String
         typeName =
@@ -527,40 +580,66 @@ link typePath =
         moduleDir : List String
         moduleDir =
             Content.Type.toModuleDir typePath
+
+        linkedFunctionIsInCurrentModule : Context -> Bool
+        linkedFunctionIsInCurrentModule context =
+            case Content.Function.fromPath context.inputFilePath of
+                Ok currentFunction ->
+                    currentFunction.moduleDir == moduleDir
+
+                Err _ ->
+                    False
+
     in
     Content.Decode.Internal.Decoder
-        { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( moduleDir, typeName )) []
+        { typeAnnotation =
+            \context ->
+                if linkedFunctionIsInCurrentModule context then
+                    Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], typeName )) []
+
+                else
+                    Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( moduleDir, typeName )) []
         , imports =
-            [ { moduleName = Content.Internal.node moduleDir
-              , moduleAlias = Nothing
-              , exposingList = Nothing
-              }
-            ]
+            \context ->
+                if linkedFunctionIsInCurrentModule context then
+                    []
+
+                else
+                    [ { moduleName = Content.Internal.node moduleDir
+                      , moduleAlias = Nothing
+                      , exposingList = Nothing
+                      }
+                    ]
         , jsonDecoder =
-            \args ->
+            \context ->
                 Json.Decode.string
                     |> Json.Decode.andThen
                         (\filePathStr ->
-                            case Path.fromString (Path.platform args.inputFilePath) filePathStr of
+                            case Path.fromString (Path.platform context.inputFilePath) filePathStr of
                                 Ok filePath ->
-                                    case Content.Function.fromPath filePath of
-                                        Content.Output.Continue _ function ->
-                                            case function.type_ of
-                                                Content.Function.ListItemFunction ->
-                                                    Json.Decode.succeed ( function.moduleDir, function.name )
+                                    case Result.map2 Tuple.pair (Content.Function.fromPath context.inputFilePath) (Content.Function.fromPath filePath) of
+                                        Ok ( currentFunction, linkedFunction ) ->
+                                            if currentFunction.moduleDir == linkedFunction.moduleDir then
+                                                Json.Decode.succeed ( [], linkedFunction.name )
 
-                                                Content.Function.SingletonFunction ->
-                                                    Json.Decode.succeed ( function.moduleDir, function.name )
+                                            else
+                                                Json.Decode.succeed ( linkedFunction.moduleDir, linkedFunction.name )
 
-                                        _ ->
-                                            Json.Decode.fail ("Couldn't find file path " ++ filePathStr)
+                                        Err Content.Function.PathIsHidden ->
+                                            Json.Decode.fail ("Referenced path is hidden: " ++ filePathStr)
+
+                                        Err Content.Function.PathIsEmpty ->
+                                            Json.Decode.fail "Referenced path is empty"
+
+                                        Err (Content.Function.PathIsInvalid message) ->
+                                            Json.Decode.fail ("Referenced path is invalid (" ++ message ++ "): " ++ filePathStr)
 
                                 Err _ ->
                                     Json.Decode.fail ("Invalid file path " ++ filePathStr)
                         )
         , asExpression =
-            \( _, functionName ) ->
-                Elm.Syntax.Expression.FunctionOrValue moduleDir (String.decapitalize functionName)
+            \_ ( moduleDir_, functionName ) ->
+                Elm.Syntax.Expression.FunctionOrValue moduleDir_ (String.decapitalize functionName)
         , actions =
             always []
         }

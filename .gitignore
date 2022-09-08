@@ -4,5 +4,6 @@ package-lock.json
 src/elm-stuff
 elm-stuff
 cli/elm-stuff
+cli/index.html
 node_modules
 octave-workspace

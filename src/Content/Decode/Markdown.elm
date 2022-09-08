@@ -1,6 +1,15 @@
 module Content.Decode.Markdown exposing (decode)
 
+{-|
+Decode a field into a `List Markdown.Block.Block` from the [dillonkearns/elm-markdown](https://package.elm-lang.org/packages/dillonkearns/elm-markdown/latest/) package.
+
+This lets you do some pretty cool things! To render the Markdown blocks into HTML, see [Markdown.Renderer](https://package.elm-lang.org/packages/dillonkearns/elm-markdown/latest/Markdown-Renderer)
+
+@docs decode
+-}
+
 import Content.Decode.Internal
+import Content.Decode.Syntax
 import Content.Internal
 
 import Elm.Syntax.TypeAnnotation
@@ -13,7 +22,6 @@ import Json.Decode.Extra
 import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
-import Markdown.Renderer
 
 
 -- I am just not sure if this is helpful, getting a list of blocks doesn't
@@ -24,18 +32,35 @@ import Markdown.Renderer
 node = Content.Internal.node
 
 
-decodeBlocks : Content.Decode.Internal.Decoder (List Markdown.Block.Block)
-decodeBlocks =
+{-|
+```elm
+decoder : Content.Type.Path -> Content.Decode.QueryResult
+decoder typePath =
+    case typePath of
+        Content.Type.Single [ "Content", "Index" ] ->
+            Content.Decode.frontmatter Content.Decode.Markdown.decode
+                [ Content.Decode.attribute "title" Content.Decode.string
+                , Content.Decode.attribute "description" Content.Decode.string
+                ]
+
+        _ ->
+            Content.Decode.throw
+```
+-}
+decode : Content.Decode.Internal.Decoder (List Markdown.Block.Block)
+decode =
     Content.Decode.Internal.Decoder
         { typeAnnotation =
-            Elm.Syntax.TypeAnnotation.Typed (node ( [], "List" ))
-                [ node (Elm.Syntax.TypeAnnotation.Typed (node ( [ "Markdown", "Block" ], "Block" )) []) ]
+            \_ ->
+                Elm.Syntax.TypeAnnotation.Typed (node ( [], "List" ))
+                    [ node (Elm.Syntax.TypeAnnotation.Typed (node ( [ "Markdown", "Block" ], "Block" )) []) ]
         , imports =
-            [ { moduleName = node [ "Markdown", "Block" ]
-              , moduleAlias = Nothing
-              , exposingList = Nothing
-              }
-            ]
+            \_ ->
+                [ { moduleName = node [ "Markdown", "Block" ]
+                  , moduleAlias = Nothing
+                  , exposingList = Nothing
+                  }
+                ]
         , jsonDecoder = \args ->
             Json.Decode.string
                 |> Json.Decode.andThen (\str ->
@@ -43,7 +68,7 @@ decodeBlocks =
                         |> Result.mapError (String.join "\n" << List.map Markdown.Parser.deadEndToString)
                         |> Json.Decode.Extra.fromResult
                 )
-        , asExpression = \blocks ->
+        , asExpression = \_ blocks ->
                 Elm.Syntax.Expression.ListExpr
                     (List.map (node << mapBlock) blocks)
         , actions = always []
@@ -195,7 +220,7 @@ mapBlock block =
                         Just language ->
                             Elm.Syntax.Expression.Application
                                 [ node (Elm.Syntax.Expression.FunctionOrValue [] "Just")
-                                , node (Elm.Syntax.Expression.Literal language)
+                                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString language))
                                 ]
 
                         Nothing ->
@@ -206,7 +231,7 @@ mapBlock block =
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "CodeBlock")
                 , node
                     ( Elm.Syntax.Expression.RecordExpr
-                        [ node ( node "body", node (Elm.Syntax.Expression.Literal details.body) )
+                        [ node ( node "body", node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString details.body)) )
                         , node ( node "language", node languageSyntax )
                         ]
                     )
@@ -237,7 +262,7 @@ mapInline inline =
                                 ( node
                                     ( Elm.Syntax.Expression.Application
                                         [ node (Elm.Syntax.Expression.FunctionOrValue [] "Just")
-                                        , node (Elm.Syntax.Expression.Literal title)
+                                        , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString title))
                                         ]
                                     )
                                 )
@@ -248,7 +273,7 @@ mapInline inline =
             in
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "Link")
-                , node (Elm.Syntax.Expression.Literal destination)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString destination))
                 , node titleSyntax
                 , node (Elm.Syntax.Expression.ListExpr (List.map (node << mapInline) inlines))
                 ]
@@ -263,7 +288,7 @@ mapInline inline =
                                 ( node
                                     ( Elm.Syntax.Expression.Application
                                         [ node (Elm.Syntax.Expression.FunctionOrValue [] "Just")
-                                        , node (Elm.Syntax.Expression.Literal title)
+                                        , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString title))
                                         ]
                                     )
                                 )
@@ -274,7 +299,7 @@ mapInline inline =
             in
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "Image")
-                , node (Elm.Syntax.Expression.Literal src)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString src))
                 , node titleSyntax
                 , node (Elm.Syntax.Expression.ListExpr (List.map (node << mapInline) inlines))
                 ]
@@ -301,13 +326,13 @@ mapInline inline =
         Markdown.Block.CodeSpan str ->
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "CodeSpan")
-                , node (Elm.Syntax.Expression.Literal str)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString str))
                 ]
 
         Markdown.Block.Text str ->
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "Text")
-                , node (Elm.Syntax.Expression.Literal str)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString str))
                 ]
 
         Markdown.Block.HardLineBreak ->
@@ -323,14 +348,14 @@ mapHtml html =
                 htmlAttributeSyntax : Markdown.Block.HtmlAttribute -> Elm.Syntax.Expression.Expression
                 htmlAttributeSyntax htmlAttribute =
                     Elm.Syntax.Expression.RecordExpr
-                        [ node ( node "name", node (Elm.Syntax.Expression.Literal htmlAttribute.name) )
-                        , node ( node "value", node (Elm.Syntax.Expression.Literal htmlAttribute.value) )
+                        [ node ( node "name", node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString htmlAttribute.name)) )
+                        , node ( node "value", node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString htmlAttribute.value)) )
                         ]
 
             in
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "HtmlElement")
-                , node (Elm.Syntax.Expression.Literal tag)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString tag))
                 , node (Elm.Syntax.Expression.ListExpr (List.map (node << htmlAttributeSyntax) htmlAttributes))
                 , node (Elm.Syntax.Expression.ListExpr (List.map (node << mapBlock) blocks))
                 ]
@@ -339,33 +364,24 @@ mapHtml html =
         Markdown.Block.HtmlComment str ->
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "HtmlComment")
-                , node (Elm.Syntax.Expression.Literal str)
-                ]
-                , node (Elm.Syntax.Expression.ListExpr (List.map (node << mapBlock) blocks))
-                ]
-
-
-        Markdown.Block.HtmlComment str ->
-            Elm.Syntax.Expression.Application
-                [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "HtmlComment")
-                , node (Elm.Syntax.Expression.Literal str)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString str))
                 ]
 
         Markdown.Block.ProcessingInstruction str ->
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "ProcessingInstruction")
-                , node (Elm.Syntax.Expression.Literal str)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString str))
                 ]
 
         Markdown.Block.HtmlDeclaration str1 str2 ->
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "HtmlDeclaration")
-                , node (Elm.Syntax.Expression.Literal str1)
-                , node (Elm.Syntax.Expression.Literal str2)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString str1))
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString str2))
                 ]
 
         Markdown.Block.Cdata str ->
             Elm.Syntax.Expression.Application
                 [ node (Elm.Syntax.Expression.FunctionOrValue [ "Markdown", "Block" ] "Cdata")
-                , node (Elm.Syntax.Expression.Literal str)
+                , node (Elm.Syntax.Expression.Literal (Content.Decode.Internal.escapedString str))
                 ]

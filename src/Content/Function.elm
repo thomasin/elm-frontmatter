@@ -1,24 +1,34 @@
-module Content.Function exposing (FunctionType(..), Function, fromPath)
+module Content.Function exposing (Function, FunctionType(..), PathError(..), fromPath)
+
+{-|
+
+@docs FunctionType, Function, fromPath, PathError
+
+-}
 
 import Content.Internal
-import Content.Output
 import Path
-import Parser
-import Dict
-import Json.Decode
-import Json.Decode.Extra
 import Result.Extra as Result
 import String.Extra as String
+import List.Extra as List
 
 
--- Generating function details --
 
+{-| Generated functions can either be singleton or collection item functions.
 
+"Singleton" means that they don't share a type with any other function in the module.
+These functions are made from paths with no brackets i.e `about.md`, `recipe/egg/content.md`
+
+"Collection item" means that they do share types with other functions.
+These functions are made from paths with surrounding brackets i.e `recipes/[egg].md`, `recipes/[egg]/content.md`
+-}
 type FunctionType
-    = ListItemFunction
-    | SingletonFunction
+    = SingletonFunction
+    | CollectionItemFunction
 
 
+{-| Function overview
+-}
 type alias Function =
     { moduleDir : List String
     , name : String
@@ -26,22 +36,21 @@ type alias Function =
     }
 
 
---type Error
---    = FileIsHidden
---    | FilePathIsEmpty
---    | FileNameIsInvalid String
+{-| Possible errors returned from `fromPath`
+-}
+type PathError
+    = PathIsHidden
+    | PathIsEmpty
+    | PathIsInvalid String
 
 
---errorToOutput error =
---    case error of
---        FileIsHidden ->
---            Content.Output.Ignore [ Content.Output.Info "Ignoring hidden file" ]
 
-
-fromPath : Path.Path -> Content.Output.Output Function
+{-| Turns a file path into a possible function
+-}
+fromPath : Path.Path -> Result PathError Function
 fromPath filePath =
     let
-        cleanFilePiece : String -> Result { message : String, terminate : Bool } Content.Internal.FileName
+        cleanFilePiece : String -> Result PathError Content.Internal.FileName
         cleanFilePiece fullPiece =
             case Path.fromString (Path.platform filePath) fullPiece of
                 Ok piecePath ->
@@ -52,38 +61,40 @@ fromPath filePath =
                         Ok (Content.Internal.Bracketed (String.classify (Path.name piecePath)))
 
                     else
-                        Ok (Content.Internal.Normal (String.classify (Path.name piecePath)))
+                        case String.classify (Path.name piecePath) of
+                            "" ->
+                                Ok Content.Internal.Empty
+
+                            moduleName ->
+                                Ok (Content.Internal.Normal moduleName)
 
                 Err err ->
-                    Err { terminate = True, message = err }
+                    Err (PathIsInvalid err)
 
-        continuePath : List Content.Internal.FileName -> Result { message : String, terminate : Bool } { moduleDir : List String, function : Maybe ( FunctionType, String ) }
+        continuePath : List Content.Internal.FileName -> Result PathError { moduleDir : List String, function : Maybe ( FunctionType, String ) }
         continuePath pieces =
             case pieces of
                 [] ->
-                    Err
-                        { terminate = False
-                        , message = "Empty file path"
-                        }
+                    Err PathIsEmpty
 
                 file :: [] ->
                     case file of
                         Content.Internal.Hidden ->
-                            Err
-                                { terminate = False
-                                , message = "Ignoring hidden file"
+                            Err PathIsHidden
+
+                        Content.Internal.Empty ->
+                            Ok
+                                { moduleDir = []
+                                , function = Nothing
                                 }
 
                         Content.Internal.Bracketed "Content" ->
-                            Err
-                                { terminate = True
-                                , message = "Invalid [content].* file"
-                                }
+                            Err (PathIsInvalid "Invalid [content].* file")
 
                         Content.Internal.Bracketed fileName ->
                             Ok
                                 { moduleDir = []
-                                , function = Just ( ListItemFunction, String.decapitalize fileName )
+                                , function = Just ( CollectionItemFunction, String.decapitalize fileName )
                                 }
 
                         Content.Internal.Normal "Content" ->
@@ -115,53 +126,43 @@ fromPath filePath =
                     in
                     case folder of
                         Content.Internal.Hidden ->
-                            Err
-                                { terminate = False
-                                , message = "Ignoring hidden folder"
-                                }
+                            Err PathIsHidden
+
+                        Content.Internal.Empty ->
+                            continuePath restPath
 
                         Content.Internal.Bracketed "Content" ->
-                            Err
-                                { terminate = True
-                                , message = "Invalid [content] folder"
-                                }
+                            Err (PathIsInvalid "Invalid [content] folder")
 
                         Content.Internal.Normal "Content" ->
-                            Err
-                                { terminate = True
-                                , message = "Invalid content folder"
-                                }
+                            Err (PathIsInvalid "Invalid content folder")
 
                         Content.Internal.Bracketed folderName ->
                             continuePath restPath
-                                |> Result.map (fillInFunction ( ListItemFunction, String.decapitalize folderName))
+                                |> Result.map (fillInFunction ( CollectionItemFunction, String.decapitalize folderName ))
 
                         Content.Internal.Normal folderName ->
                             continuePath restPath
                                 |> Result.map (fillInModuleDir (String.classify folderName))
                                 |> Result.map (fillInFunction ( SingletonFunction, "content" ))
     in
-    case Result.andThen continuePath (Result.combine (List.map cleanFilePiece (Path.toList filePath))) of
+    case Result.andThen continuePath (Result.combine (Debug.log "cleaned" (List.map cleanFilePiece (Path.toList filePath)))) of
         Ok details ->
             case details.function of
                 Nothing ->
-                    Content.Output.Terminate "Invalid top-level content.* file"
+                    Err (PathIsInvalid "Invalid top-level content.* file")
 
                 Just ( functionType, functionName ) ->
                     case details.moduleDir of
                         [] ->
-                            Content.Output.Terminate ("Invalid top-level [*].* file: " ++ Path.toString filePath)
+                            Err (PathIsInvalid ("Invalid top-level [*].* file: " ++ Path.toString filePath))
 
                         _ ->
-                            Content.Output.Continue []
+                            Ok
                                 { moduleDir = "Content" :: details.moduleDir
                                 , name = functionName
                                 , type_ = functionType
                                 }
 
         Err err ->
-            if err.terminate then
-                Content.Output.Terminate err.message
-
-            else
-                Content.Output.Ignore [ Content.Output.Info err.message ]
+            Err err

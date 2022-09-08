@@ -1,9 +1,11 @@
-module Content.Decode.Syntax exposing (Syntax, fromDecoder, string, datetime, int, float, bool, list, dict, tuple2, tuple3)
+module Content.Decode.Syntax exposing
+    ( Syntax, noContext, node, string, datetime, int, float, bool, list, dict, tuple2, tuple3
+    )
 
 {-| These Syntax helpers are extensible wrappers around elm-syntax, made so you can build
 type and function declarations in parallel.
 
-    syntax : Content.Decode.Syntax.Syntax ( ( Int, String ), List ( String, String ) )
+    syntax : Content.Decode.Syntax.Syntax () ( ( Int, String ), List ( String, String ) )
     syntax =
         Content.Decode.Syntax.tuple2
             ( Content.Decode.Syntax.tuple2 ( Content.Decode.Syntax.int, Content.Decode.Syntax.string )
@@ -11,82 +13,83 @@ type and function declarations in parallel.
                 (Content.Decode.Syntax.tuple2 ( Content.Decode.Syntax.string Content.Decode.Syntax.string ))
             )
 
-    Elm.Writer.writeExpression
-        (syntax.expression [ ( "one", "two" ), [ ( "three", "four" ) ] ]
-
-    Elm.Writer.writeTypeAnnotation syntax.typeAnnotation
-
-@docs Syntax, fromDecoder, string, datetime, int, float, bool, list, dict, tuple2, tuple3
-
+@docs Syntax, noContext, string, datetime, int, float, bool, list, dict, tuple2, tuple3
+@docs node
 -}
 
-import Content.Decode.Internal
 import Content.Internal
 import Elm.Syntax.Expression
 import Elm.Syntax.Import
+import Elm.Syntax.Node
 import Elm.Syntax.TypeAnnotation
+import Path
 import Time
 
 
-{-| Syntax object
+{-| Syntax object. Fields take a `context` argument, so when you render your type
+    annotation, imports or expressions you can pass down meta. `Content.Decode.Decoder`s
+    use this to pass down the input file path so that decoders know which file they are decoding.
 -}
-type alias Syntax a =
-    { typeAnnotation : Elm.Syntax.TypeAnnotation.TypeAnnotation
-    , imports : List Elm.Syntax.Import.Import
-    , expression : a -> Elm.Syntax.Expression.Expression
+type alias Syntax context value =
+    { typeAnnotation : context -> Elm.Syntax.TypeAnnotation.TypeAnnotation
+    , imports : context -> List Elm.Syntax.Import.Import
+    , expression : context -> value -> Elm.Syntax.Expression.Expression
     }
 
 
-{-| Turn a decoder into a simpler Syntax object
+{-| A very small helper to create a Syntax object that doesn't need to use or pass on any context.
 -}
-fromDecoder : Content.Decode.Internal.Decoder a -> Syntax a
-fromDecoder (Content.Decode.Internal.Decoder decoder) =
-    { typeAnnotation = decoder.typeAnnotation
-    , imports = decoder.imports
-    , expression = decoder.asExpression
+noContext : { typeAnnotation : Elm.Syntax.TypeAnnotation.TypeAnnotation, imports : List Elm.Syntax.Import.Import, expression : value -> Elm.Syntax.Expression.Expression } -> Syntax context value
+noContext args =
+    { typeAnnotation = \_ -> args.typeAnnotation
+    , imports = \_ -> args.imports
+    , expression = \_ value -> args.expression value
     }
 
 
 {-| String
+    An important note is that this will escape '"' and '\', as it is meant for user provided strings.
+    If you want to pass it hardcoded strings this might be a problem.
 -}
-string : Syntax String
+string : Syntax context String
 string =
-    { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "String" )) []
-    , imports = []
-    , expression = Elm.Syntax.Expression.Literal << String.replace "\"" "\\\""
+    { typeAnnotation = \_ -> Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "String" )) []
+    , imports = \_ -> []
+    , expression = \_ value ->
+        Elm.Syntax.Expression.Literal (String.replace "\"" "\\\"" (String.replace "\\" "\\\\" value))
     }
 
 
 {-| Int
 -}
-int : Syntax Int
+int : Syntax context Int
 int =
-    { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Int" )) []
-    , imports = []
-    , expression = Elm.Syntax.Expression.Integer
+    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Int" )) [])
+    , imports = \_ -> []
+    , expression = \_ value -> Elm.Syntax.Expression.Integer value
     }
 
 
 {-| Float
 -}
-float : Syntax Float
+float : Syntax context Float
 float =
-    { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Float" )) []
-    , imports = []
-    , expression = Elm.Syntax.Expression.Floatable
+    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Float" )) [])
+    , imports = \_ -> []
+    , expression = \_ value -> Elm.Syntax.Expression.Floatable value
     }
 
 
 {-| Bool
 -}
-bool : Syntax Bool
+bool : Syntax context Bool
 bool =
-    { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Bool" )) []
-    , imports = []
+    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Bool" )) [])
+    , imports = \_ -> ([])
     , expression =
-        \b ->
+        \_ bool_ ->
             Elm.Syntax.Expression.FunctionOrValue []
-                (if b then
+                (if bool_ then
                     "True"
 
                  else
@@ -97,20 +100,20 @@ bool =
 
 {-| Datetime
 -}
-datetime : Syntax Time.Posix
+datetime : Syntax context Time.Posix
 datetime =
-    { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [ "Time" ], "Posix" )) []
-    , imports =
+    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [ "Time" ], "Posix" )) [])
+    , imports = \_ -> 
         [ { moduleName = Content.Internal.node [ "Time" ]
           , moduleAlias = Nothing
           , exposingList = Nothing
           }
         ]
     , expression =
-        \posix ->
+        \context posix ->
             Elm.Syntax.Expression.Application
                 [ Content.Internal.node (Elm.Syntax.Expression.FunctionOrValue [ "Time" ] "millisToPosix")
-                , Content.Internal.node (int.expression (Time.posixToMillis posix))
+                , Content.Internal.node (int.expression context (Time.posixToMillis posix))
                 ]
     }
 
@@ -118,39 +121,48 @@ datetime =
 {-| List
 `list string => List String`
 -}
-list : Syntax a -> Syntax (List a)
+list : Syntax context a -> Syntax context (List a)
 list item =
-    { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "List" )) [ Content.Internal.node item.typeAnnotation ]
+    { typeAnnotation = \context ->
+        Elm.Syntax.TypeAnnotation.Typed
+            (Content.Internal.node ( [], "List" ))
+            [ Content.Internal.node (item.typeAnnotation context) ]
     , imports = item.imports
     , expression =
-        \decoded ->
+        \context value ->
             Elm.Syntax.Expression.ListExpr
-                (List.map (Content.Internal.node << item.expression) decoded)
+                (List.map (Content.Internal.node << item.expression context) value)
     }
 
 
 {-| Dict
-`dict int => Dict.Dict String Int`
+`dict string int => Dict.Dict String Int`
 -}
-dict : Syntax a -> Syntax (List ( String, a ))
-dict item =
-    { typeAnnotation = Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [ "Dict" ], "Dict" )) [ Content.Internal.node item.typeAnnotation ]
+dict : Syntax context key -> Syntax context value -> Syntax context (List ( key, value ))
+dict keyItem valueItem =
+    { typeAnnotation = \context ->
+        Elm.Syntax.TypeAnnotation.Typed
+            (Content.Internal.node ( [ "Dict" ], "Dict" ))
+            [ Content.Internal.node (keyItem.typeAnnotation context)
+            , Content.Internal.node (valueItem.typeAnnotation context)
+            ]
     , imports =
-        { moduleName = Content.Internal.node [ "Dict" ]
-        , moduleAlias = Nothing
-        , exposingList = Nothing
-        }
-            :: item.imports
+        \context ->
+            { moduleName = Content.Internal.node [ "Dict" ]
+            , moduleAlias = Nothing
+            , exposingList = Nothing
+            }
+                :: (keyItem.imports context ++ valueItem.imports context)
     , expression =
-        \decoded ->
+        \context values ->
             let
-                syntax : Syntax (List ( String, a ))
+                syntax : Syntax context (List ( key, value ))
                 syntax =
-                    list (tuple2 ( string, item ))
+                    list (tuple2 ( keyItem, valueItem ))
             in
             Elm.Syntax.Expression.Application
                 [ Content.Internal.node (Elm.Syntax.Expression.FunctionOrValue [ "Dict" ] "fromList")
-                , Content.Internal.node (syntax.expression decoded)
+                , Content.Internal.node (syntax.expression context values)
                 ]
     }
 
@@ -158,19 +170,20 @@ dict item =
 {-| Two element tuple
 `tuple2 ( string, int ) => ( String, Int )`
 -}
-tuple2 : ( Syntax a, Syntax b ) -> Syntax ( a, b )
+tuple2 : ( Syntax context a, Syntax context b ) -> Syntax context ( a, b )
 tuple2 ( itemA, itemB ) =
-    { typeAnnotation =
+    { typeAnnotation = \context ->
         Elm.Syntax.TypeAnnotation.Tupled
-            [ Content.Internal.node itemA.typeAnnotation
-            , Content.Internal.node itemB.typeAnnotation
+            [ Content.Internal.node (itemA.typeAnnotation context)
+            , Content.Internal.node (itemB.typeAnnotation context)
             ]
-    , imports = List.concat [ itemA.imports, itemB.imports ]
+    , imports = \context ->
+        List.concat [ itemA.imports context, itemB.imports context ]
     , expression =
-        \( decodedA, decodedB ) ->
+        \context ( decodedA, decodedB ) ->
             Elm.Syntax.Expression.TupledExpression
-                [ Content.Internal.node (itemA.expression decodedA)
-                , Content.Internal.node (itemB.expression decodedB)
+                [ Content.Internal.node (itemA.expression context decodedA)
+                , Content.Internal.node (itemB.expression context decodedB)
                 ]
     }
 
@@ -178,23 +191,34 @@ tuple2 ( itemA, itemB ) =
 {-| Three element tuple
 `tuple2 ( string, float, int ) => ( String, Float, Int )`
 -}
-tuple3 : ( Syntax a, Syntax b, Syntax c ) -> Syntax ( a, b, c )
+tuple3 : ( Syntax context a, Syntax context b, Syntax context c ) -> Syntax context ( a, b, c )
 tuple3 ( itemA, itemB, itemC ) =
     { typeAnnotation =
-        Elm.Syntax.TypeAnnotation.Tupled
-            [ Content.Internal.node itemA.typeAnnotation
-            , Content.Internal.node itemB.typeAnnotation
-            , Content.Internal.node itemC.typeAnnotation
-            ]
-    , imports = List.concat [ itemA.imports, itemB.imports, itemC.imports ]
+        \context ->
+            Elm.Syntax.TypeAnnotation.Tupled
+                [ Content.Internal.node (itemA.typeAnnotation context)
+                , Content.Internal.node (itemB.typeAnnotation context)
+                , Content.Internal.node (itemC.typeAnnotation context)
+                ]
+    , imports =
+        \context ->
+            List.concat [ itemA.imports context, itemB.imports context, itemC.imports context ]
     , expression =
-        \( decodedA, decodedB, decodedC ) ->
+        \context ( decodedA, decodedB, decodedC ) ->
             Elm.Syntax.Expression.TupledExpression
-                [ Content.Internal.node (itemA.expression decodedA)
-                , Content.Internal.node (itemB.expression decodedB)
-                , Content.Internal.node (itemC.expression decodedC)
+                [ Content.Internal.node (itemA.expression context decodedA)
+                , Content.Internal.node (itemB.expression context decodedB)
+                , Content.Internal.node (itemC.expression context decodedC)
                 ]
     }
+
+
+{-| Small helper for building up Elm.Syntax expressions (zero-ed out node, empty range).
+    There aren't many helpers in this module for building up custom types so I would feel bad
+    for not at least offering this.
+-}
+node : a -> Elm.Syntax.Node.Node a
+node = Content.Internal.node
 
 
 

@@ -3124,18 +3124,18 @@ var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
 var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
-var $author$project$Path$Internal$Posix = {$: 'Posix'};
-var $author$project$Path$Platform$posix = $author$project$Path$Internal$Posix;
+var $thomasin$elm_path$Path$Internal$Posix = {$: 'Posix'};
+var $thomasin$elm_path$Path$Platform$posix = $thomasin$elm_path$Path$Internal$Posix;
 var $elm$core$String$cons = _String_cons;
 var $elm$core$String$fromChar = function (_char) {
 	return A2($elm$core$String$cons, _char, '');
 };
-var $author$project$Path$Internal$win32Separator = _Utils_chr('\\');
-var $author$project$Path$Win32$separator = $elm$core$String$fromChar($author$project$Path$Internal$win32Separator);
-var $author$project$Path$Internal$Win32 = {$: 'Win32'};
-var $author$project$Path$Platform$win32 = $author$project$Path$Internal$Win32;
-var $author$project$Path$Platform$fromSeparator = function (sep) {
-	return _Utils_eq(sep, $author$project$Path$Win32$separator) ? $author$project$Path$Platform$win32 : $author$project$Path$Platform$posix;
+var $thomasin$elm_path$Path$Internal$win32Separator = _Utils_chr('\\');
+var $thomasin$elm_path$Path$Win32$separator = $elm$core$String$fromChar($thomasin$elm_path$Path$Internal$win32Separator);
+var $thomasin$elm_path$Path$Internal$Win32 = {$: 'Win32'};
+var $thomasin$elm_path$Path$Platform$win32 = $thomasin$elm_path$Path$Internal$Win32;
+var $thomasin$elm_path$Path$Platform$fromSeparator = function (separator_) {
+	return _Utils_eq(separator_, $thomasin$elm_path$Path$Win32$separator) ? $thomasin$elm_path$Path$Platform$win32 : $thomasin$elm_path$Path$Platform$posix;
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -3145,7 +3145,7 @@ var $author$project$Main$init = function (flags) {
 			fileEffectsPerformed: $elm$core$Set$empty,
 			modulesContents: $elm$core$Dict$empty,
 			outputFiles: _List_Nil,
-			platform: $author$project$Path$Platform$fromSeparator(flags.pathSep)
+			platform: $thomasin$elm_path$Path$Platform$fromSeparator(flags.pathSep)
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -3161,7 +3161,7 @@ var $author$project$Ports$add = _Platform_incomingPort('add', $elm$json$Json$Dec
 var $author$project$Main$Add = function (a) {
 	return {$: 'Add', a: a};
 };
-var $author$project$Content$Decode$File$InputFile = F2(
+var $author$project$Modules$InputFile = F2(
 	function (filePath, fileFrontmatter) {
 		return {fileFrontmatter: fileFrontmatter, filePath: filePath};
 	});
@@ -3173,9 +3173,6 @@ var $elm$core$Basics$composeL = F3(
 		return g(
 			f(x));
 	});
-var $elm$parser$Parser$deadEndsToString = function (deadEnds) {
-	return 'TODO deadEndsToString';
-};
 var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $elm$json$Json$Decode$fail = _Json_fail;
 var $elm$json$Json$Decode$succeed = _Json_succeed;
@@ -3188,7 +3185,21 @@ var $elm_community$json_extra$Json$Decode$Extra$fromResult = function (result) {
 		return $elm$json$Json$Decode$fail(errorMessage);
 	}
 };
-var $author$project$Path$Internal$Path = F2(
+var $elm$parser$Parser$deadEndsToString = function (deadEnds) {
+	return 'TODO deadEndsToString';
+};
+var $elm$core$Result$mapError = F2(
+	function (f, result) {
+		if (result.$ === 'Ok') {
+			var v = result.a;
+			return $elm$core$Result$Ok(v);
+		} else {
+			var e = result.a;
+			return $elm$core$Result$Err(
+				f(e));
+		}
+	});
+var $thomasin$elm_path$Path$Internal$Path = F2(
 	function (a, b) {
 		return {$: 'Path', a: a, b: b};
 	});
@@ -3311,7 +3322,7 @@ var $elm$parser$Parser$symbol = function (str) {
 			str,
 			$elm$parser$Parser$ExpectingSymbol(str)));
 };
-var $author$project$Path$Internal$absoluteParser = function (sep) {
+var $thomasin$elm_path$Path$Internal$absoluteParser = function (sep) {
 	return A2(
 		$elm$parser$Parser$ignorer,
 		$elm$parser$Parser$succeed(true),
@@ -3401,7 +3412,6 @@ var $elm$parser$Parser$Advanced$keeper = F2(
 		return A3($elm$parser$Parser$Advanced$map2, $elm$core$Basics$apL, parseFunc, parseArg);
 	});
 var $elm$parser$Parser$keeper = $elm$parser$Parser$Advanced$keeper;
-var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Maybe$map = F2(
 	function (f, maybe) {
 		if (maybe.$ === 'Just') {
@@ -3452,12 +3462,8 @@ var $elm_community$string_extra$String$Extra$isBlank = function (string) {
 var $elm_community$string_extra$String$Extra$nonBlank = function (string) {
 	return $elm_community$string_extra$String$Extra$isBlank(string) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(string);
 };
-var $author$project$Path$Internal$makePathDetails = F3(
+var $thomasin$elm_path$Path$Internal$makePathDetails = F3(
 	function (sep, root, tail) {
-		var kkj = A2(
-			$elm$core$Debug$log,
-			'(root,tail)',
-			_Utils_Tuple2(root, tail));
 		return {
 			dir: function () {
 				if (tail.$ === 'Just') {
@@ -3766,7 +3772,7 @@ var $elm$parser$Parser$loop = F2(
 			});
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
-var $author$project$Path$Internal$pathTailParser = F2(
+var $thomasin$elm_path$Path$Internal$pathTailParser = F2(
 	function (allowAboveRoot, sep) {
 		var handleNewPathPiece = F2(
 			function (normalised, piece) {
@@ -3815,7 +3821,7 @@ var $author$project$Path$Internal$pathTailParser = F2(
 		};
 		return A2($elm$parser$Parser$loop, _List_Nil, parserHelp);
 	});
-var $author$project$Path$Internal$posixSeparator = _Utils_chr('/');
+var $thomasin$elm_path$Path$Internal$posixSeparator = _Utils_chr('/');
 var $elm$parser$Parser$Problem = function (a) {
 	return {$: 'Problem', a: a};
 };
@@ -3832,7 +3838,7 @@ var $elm$parser$Parser$problem = function (msg) {
 	return $elm$parser$Parser$Advanced$problem(
 		$elm$parser$Parser$Problem(msg));
 };
-var $author$project$Path$Posix$Internal$separator = $elm$core$String$fromChar($author$project$Path$Internal$posixSeparator);
+var $thomasin$elm_path$Path$Posix$Internal$separator = $elm$core$String$fromChar($thomasin$elm_path$Path$Internal$posixSeparator);
 var $elm$parser$Parser$Expecting = function (a) {
 	return {$: 'Expecting', a: a};
 };
@@ -3846,7 +3852,7 @@ var $elm$parser$Parser$token = function (str) {
 	return $elm$parser$Parser$Advanced$token(
 		$elm$parser$Parser$toToken(str));
 };
-var $author$project$Path$Posix$Internal$parser = function () {
+var $thomasin$elm_path$Path$Posix$Internal$parser = function () {
 	var doubleSeparatorParser = A2(
 		$elm$parser$Parser$andThen,
 		function (nextCharIsSeparator) {
@@ -3859,7 +3865,7 @@ var $author$project$Path$Posix$Internal$parser = function () {
 				$elm$parser$Parser$succeed($elm$core$Basics$identity),
 				$elm$parser$Parser$backtrackable(
 					$elm$parser$Parser$token(
-						_Utils_ap($author$project$Path$Posix$Internal$separator, $author$project$Path$Posix$Internal$separator)))),
+						_Utils_ap($thomasin$elm_path$Path$Posix$Internal$separator, $thomasin$elm_path$Path$Posix$Internal$separator)))),
 			$elm$parser$Parser$oneOf(
 				_List_fromArray(
 					[
@@ -3870,7 +3876,7 @@ var $author$project$Path$Posix$Internal$parser = function () {
 						},
 						$elm$parser$Parser$backtrackable(
 							$elm$parser$Parser$chompIf(
-								$elm$core$Basics$eq($author$project$Path$Internal$posixSeparator)))),
+								$elm$core$Basics$eq($thomasin$elm_path$Path$Internal$posixSeparator)))),
 						$elm$parser$Parser$succeed(false)
 					]))));
 	var rootParser = $elm$parser$Parser$oneOf(
@@ -3882,29 +3888,29 @@ var $author$project$Path$Posix$Internal$parser = function () {
 					$elm$parser$Parser$succeed(
 						{
 							isAbsolute: true,
-							root: _Utils_ap($author$project$Path$Posix$Internal$separator, $author$project$Path$Posix$Internal$separator)
+							root: _Utils_ap($thomasin$elm_path$Path$Posix$Internal$separator, $thomasin$elm_path$Path$Posix$Internal$separator)
 						}),
 					doubleSeparatorParser)),
 				A2(
 				$elm$parser$Parser$ignorer,
 				$elm$parser$Parser$succeed(
-					{isAbsolute: true, root: $author$project$Path$Posix$Internal$separator}),
-				$author$project$Path$Internal$absoluteParser($author$project$Path$Internal$posixSeparator)),
+					{isAbsolute: true, root: $thomasin$elm_path$Path$Posix$Internal$separator}),
+				$thomasin$elm_path$Path$Internal$absoluteParser($thomasin$elm_path$Path$Internal$posixSeparator)),
 				$elm$parser$Parser$succeed(
 				{isAbsolute: false, root: ''})
 			]));
 	return A2(
 		$elm$parser$Parser$keeper,
 		$elm$parser$Parser$succeed(
-			$author$project$Path$Internal$Path($author$project$Path$Internal$Posix)),
+			$thomasin$elm_path$Path$Internal$Path($thomasin$elm_path$Path$Internal$Posix)),
 		A2(
 			$elm$parser$Parser$andThen,
 			function (root) {
 				return A2(
 					$elm$parser$Parser$keeper,
 					$elm$parser$Parser$succeed(
-						A2($author$project$Path$Internal$makePathDetails, $author$project$Path$Internal$posixSeparator, root)),
-					A2($author$project$Path$Internal$pathTailParser, !root.isAbsolute, $author$project$Path$Internal$posixSeparator));
+						A2($thomasin$elm_path$Path$Internal$makePathDetails, $thomasin$elm_path$Path$Internal$posixSeparator, root)),
+					A2($thomasin$elm_path$Path$Internal$pathTailParser, !root.isAbsolute, $thomasin$elm_path$Path$Internal$posixSeparator));
 			},
 			rootParser));
 }();
@@ -4036,8 +4042,11 @@ var $elm$parser$Parser$run = F2(
 				A2($elm$core$List$map, $elm$parser$Parser$problemToDeadEnd, problems));
 		}
 	});
-var $author$project$Path$Posix$fromString = function (str) {
-	return A2($elm$parser$Parser$run, $author$project$Path$Posix$Internal$parser, str);
+var $thomasin$elm_path$Path$Posix$fromString = function (str) {
+	return A2(
+		$elm$core$Result$mapError,
+		$elm$parser$Parser$deadEndsToString,
+		A2($elm$parser$Parser$run, $thomasin$elm_path$Path$Posix$Internal$parser, str));
 };
 var $elm$core$String$dropLeft = F2(
 	function (n, string) {
@@ -4059,8 +4068,8 @@ var $elm$core$Result$map = F2(
 		}
 	});
 var $elm$parser$Parser$mapChompedString = $elm$parser$Parser$Advanced$mapChompedString;
-var $author$project$Path$Win32$Internal$separator = $elm$core$String$fromChar($author$project$Path$Internal$win32Separator);
-var $author$project$Path$Win32$Internal$parser = function () {
+var $thomasin$elm_path$Path$Win32$Internal$separator = $elm$core$String$fromChar($thomasin$elm_path$Path$Internal$win32Separator);
+var $thomasin$elm_path$Path$Win32$Internal$parser = function () {
 	var uncRootParser = A2(
 		$elm$parser$Parser$keeper,
 		A2(
@@ -4071,17 +4080,17 @@ var $author$project$Path$Win32$Internal$parser = function () {
 					F2(
 						function (machine, server) {
 							return _Utils_ap(
-								$author$project$Path$Win32$Internal$separator,
+								$thomasin$elm_path$Path$Win32$Internal$separator,
 								_Utils_ap(
-									$author$project$Path$Win32$Internal$separator,
+									$thomasin$elm_path$Path$Win32$Internal$separator,
 									_Utils_ap(
 										machine,
 										_Utils_ap(
-											$author$project$Path$Win32$Internal$separator,
-											_Utils_ap(server, $author$project$Path$Win32$Internal$separator)))));
+											$thomasin$elm_path$Path$Win32$Internal$separator,
+											_Utils_ap(server, $thomasin$elm_path$Path$Win32$Internal$separator)))));
 						})),
 				$elm$parser$Parser$token(
-					_Utils_ap($author$project$Path$Win32$Internal$separator, $author$project$Path$Win32$Internal$separator))),
+					_Utils_ap($thomasin$elm_path$Path$Win32$Internal$separator, $thomasin$elm_path$Path$Win32$Internal$separator))),
 			A2(
 				$elm$parser$Parser$ignorer,
 				A2(
@@ -4093,13 +4102,13 @@ var $author$project$Path$Win32$Internal$parser = function () {
 								$elm$parser$Parser$ignorer,
 								$elm$parser$Parser$succeed(_Utils_Tuple0),
 								$elm$parser$Parser$chompIf(
-									$elm$core$Basics$neq($author$project$Path$Internal$win32Separator))),
+									$elm$core$Basics$neq($thomasin$elm_path$Path$Internal$win32Separator))),
 							$elm$parser$Parser$chompWhile(
-								$elm$core$Basics$neq($author$project$Path$Internal$win32Separator)))),
+								$elm$core$Basics$neq($thomasin$elm_path$Path$Internal$win32Separator)))),
 					$elm$parser$Parser$chompIf(
-						$elm$core$Basics$eq($author$project$Path$Internal$win32Separator))),
+						$elm$core$Basics$eq($thomasin$elm_path$Path$Internal$win32Separator))),
 				$elm$parser$Parser$chompWhile(
-					$elm$core$Basics$eq($author$project$Path$Internal$win32Separator)))),
+					$elm$core$Basics$eq($thomasin$elm_path$Path$Internal$win32Separator)))),
 		A2(
 			$elm$parser$Parser$ignorer,
 			A2(
@@ -4111,13 +4120,13 @@ var $author$project$Path$Win32$Internal$parser = function () {
 							$elm$parser$Parser$ignorer,
 							$elm$parser$Parser$succeed(_Utils_Tuple0),
 							$elm$parser$Parser$chompIf(
-								$elm$core$Basics$neq($author$project$Path$Internal$win32Separator))),
+								$elm$core$Basics$neq($thomasin$elm_path$Path$Internal$win32Separator))),
 						$elm$parser$Parser$chompWhile(
-							$elm$core$Basics$neq($author$project$Path$Internal$win32Separator)))),
+							$elm$core$Basics$neq($thomasin$elm_path$Path$Internal$win32Separator)))),
 				$elm$parser$Parser$chompIf(
-					$elm$core$Basics$eq($author$project$Path$Internal$win32Separator))),
+					$elm$core$Basics$eq($thomasin$elm_path$Path$Internal$win32Separator))),
 			$elm$parser$Parser$chompWhile(
-				$elm$core$Basics$eq($author$project$Path$Internal$win32Separator))));
+				$elm$core$Basics$eq($thomasin$elm_path$Path$Internal$win32Separator))));
 	var deviceRootParser = A2(
 		$elm$parser$Parser$keeper,
 		A2(
@@ -4130,7 +4139,7 @@ var $author$project$Path$Win32$Internal$parser = function () {
 		$elm$parser$Parser$oneOf(
 			_List_fromArray(
 				[
-					$author$project$Path$Internal$absoluteParser($author$project$Path$Internal$win32Separator),
+					$thomasin$elm_path$Path$Internal$absoluteParser($thomasin$elm_path$Path$Internal$win32Separator),
 					$elm$parser$Parser$succeed(false)
 				])));
 	var rootParser = $elm$parser$Parser$oneOf(
@@ -4147,8 +4156,8 @@ var $author$project$Path$Win32$Internal$parser = function () {
 				A2(
 				$elm$parser$Parser$ignorer,
 				$elm$parser$Parser$succeed(
-					{isAbsolute: true, root: $author$project$Path$Win32$Internal$separator}),
-				$author$project$Path$Internal$absoluteParser($author$project$Path$Internal$win32Separator)),
+					{isAbsolute: true, root: $thomasin$elm_path$Path$Win32$Internal$separator}),
+				$thomasin$elm_path$Path$Internal$absoluteParser($thomasin$elm_path$Path$Internal$win32Separator)),
 				$elm$parser$Parser$backtrackable(
 				A2(
 					$elm$parser$Parser$mapChompedString,
@@ -4163,15 +4172,15 @@ var $author$project$Path$Win32$Internal$parser = function () {
 	return A2(
 		$elm$parser$Parser$keeper,
 		$elm$parser$Parser$succeed(
-			$author$project$Path$Internal$Path($author$project$Path$Internal$Win32)),
+			$thomasin$elm_path$Path$Internal$Path($thomasin$elm_path$Path$Internal$Win32)),
 		A2(
 			$elm$parser$Parser$andThen,
 			function (root) {
 				return A2(
 					$elm$parser$Parser$keeper,
 					$elm$parser$Parser$succeed(
-						A2($author$project$Path$Internal$makePathDetails, $author$project$Path$Internal$win32Separator, root)),
-					A2($author$project$Path$Internal$pathTailParser, !root.isAbsolute, $author$project$Path$Internal$win32Separator));
+						A2($thomasin$elm_path$Path$Internal$makePathDetails, $thomasin$elm_path$Path$Internal$win32Separator, root)),
+					A2($thomasin$elm_path$Path$Internal$pathTailParser, !root.isAbsolute, $thomasin$elm_path$Path$Internal$win32Separator));
 			},
 			rootParser));
 }();
@@ -4183,75 +4192,71 @@ var $elm$core$String$replace = F3(
 			A2($elm$core$String$split, before, string));
 	});
 var $elm$core$String$startsWith = _String_startsWith;
-var $author$project$Path$Win32$fromString = function (path) {
+var $thomasin$elm_path$Path$Win32$fromString = function (path) {
 	return A2($elm$core$String$startsWith, '\\\\?\\', path) ? A2(
-		$elm$core$Result$map,
-		function (_v0) {
-			var os = _v0.a;
-			var details = _v0.b;
-			return A2(
-				$author$project$Path$Internal$Path,
-				$author$project$Path$Internal$Win32,
-				_Utils_update(
-					details,
-					{
-						root: $elm$core$Maybe$Just('\\\\?\\')
-					}));
-		},
+		$elm$core$Result$mapError,
+		$elm$parser$Parser$deadEndsToString,
+		A2(
+			$elm$core$Result$map,
+			function (_v0) {
+				var details = _v0.b;
+				return A2(
+					$thomasin$elm_path$Path$Internal$Path,
+					$thomasin$elm_path$Path$Internal$Win32,
+					_Utils_update(
+						details,
+						{
+							root: $elm$core$Maybe$Just('\\\\?\\')
+						}));
+			},
+			A2(
+				$elm$parser$Parser$run,
+				$thomasin$elm_path$Path$Win32$Internal$parser,
+				A2($elm$core$String$dropLeft, 3, path)))) : (A2($elm$core$String$startsWith, '\\\\.\\', path) ? A2(
+		$elm$core$Result$mapError,
+		$elm$parser$Parser$deadEndsToString,
+		A2(
+			$elm$core$Result$map,
+			function (_v1) {
+				var details = _v1.b;
+				return A2(
+					$thomasin$elm_path$Path$Internal$Path,
+					$thomasin$elm_path$Path$Internal$Win32,
+					_Utils_update(
+						details,
+						{
+							root: $elm$core$Maybe$Just('\\\\.\\')
+						}));
+			},
+			A2(
+				$elm$parser$Parser$run,
+				$thomasin$elm_path$Path$Win32$Internal$parser,
+				A2($elm$core$String$dropLeft, 3, path)))) : A2(
+		$elm$core$Result$mapError,
+		$elm$parser$Parser$deadEndsToString,
 		A2(
 			$elm$parser$Parser$run,
-			$author$project$Path$Win32$Internal$parser,
-			A2($elm$core$String$dropLeft, 3, path))) : (A2($elm$core$String$startsWith, '\\\\.\\', path) ? A2(
-		$elm$core$Result$map,
-		function (_v1) {
-			var os = _v1.a;
-			var details = _v1.b;
-			return A2(
-				$author$project$Path$Internal$Path,
-				$author$project$Path$Internal$Win32,
-				_Utils_update(
-					details,
-					{
-						root: $elm$core$Maybe$Just('\\\\.\\')
-					}));
-		},
-		A2(
-			$elm$parser$Parser$run,
-			$author$project$Path$Win32$Internal$parser,
-			A2($elm$core$String$dropLeft, 3, path))) : A2(
-		$elm$parser$Parser$run,
-		$author$project$Path$Win32$Internal$parser,
-		A3(
-			$elm$core$String$replace,
-			$elm$core$String$fromChar($author$project$Path$Internal$posixSeparator),
-			$author$project$Path$Win32$separator,
-			path)));
+			$thomasin$elm_path$Path$Win32$Internal$parser,
+			A3(
+				$elm$core$String$replace,
+				$elm$core$String$fromChar($thomasin$elm_path$Path$Internal$posixSeparator),
+				$thomasin$elm_path$Path$Win32$separator,
+				path))));
 };
-var $author$project$Path$fromString = F2(
-	function (os, str) {
-		if (os.$ === 'Win32') {
-			return $author$project$Path$Win32$fromString(str);
+var $thomasin$elm_path$Path$fromString = F2(
+	function (platform_, str) {
+		if (platform_.$ === 'Win32') {
+			return $thomasin$elm_path$Path$Win32$fromString(str);
 		} else {
-			return $author$project$Path$Posix$fromString(str);
+			return $thomasin$elm_path$Path$Posix$fromString(str);
 		}
 	});
 var $elm$json$Json$Decode$map2 = _Json_map2;
-var $elm$core$Result$mapError = F2(
-	function (f, result) {
-		if (result.$ === 'Ok') {
-			var v = result.a;
-			return $elm$core$Result$Ok(v);
-		} else {
-			var e = result.a;
-			return $elm$core$Result$Err(
-				f(e));
-		}
-	});
 var $author$project$Main$addRawFile = F2(
 	function (platform, jsValue) {
 		var decodeInputFile = A3(
 			$elm$json$Json$Decode$map2,
-			$author$project$Content$Decode$File$InputFile,
+			$author$project$Modules$InputFile,
 			A2(
 				$elm$json$Json$Decode$field,
 				'filePath',
@@ -4259,11 +4264,8 @@ var $author$project$Main$addRawFile = F2(
 					$elm$json$Json$Decode$andThen,
 					A2(
 						$elm$core$Basics$composeL,
-						A2(
-							$elm$core$Basics$composeL,
-							$elm_community$json_extra$Json$Decode$Extra$fromResult,
-							$elm$core$Result$mapError($elm$parser$Parser$deadEndsToString)),
-						$author$project$Path$fromString(platform)),
+						$elm_community$json_extra$Json$Decode$Extra$fromResult,
+						$thomasin$elm_path$Path$fromString(platform)),
 					$elm$json$Json$Decode$string)),
 			A2($elm$json$Json$Decode$field, 'fileFrontmatter', $elm$json$Json$Decode$value));
 		var _v0 = A2($elm$json$Json$Decode$decodeValue, decodeInputFile, jsValue);
@@ -4290,1406 +4292,7 @@ var $author$project$Main$subscriptions = function (model) {
 				$author$project$Ports$effectsPerformed($author$project$Main$EffectsPerformed)
 			]));
 };
-var $author$project$Content$Type$Multiple = function (a) {
-	return {$: 'Multiple', a: a};
-};
-var $author$project$Content$Type$Single = function (a) {
-	return {$: 'Single', a: a};
-};
-var $author$project$Content$Decode$Internal$Decoder = function (a) {
-	return {$: 'Decoder', a: a};
-};
-var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Record = function (a) {
-	return {$: 'Record', a: a};
-};
-var $stil4m$elm_syntax$Elm$Syntax$Expression$RecordExpr = function (a) {
-	return {$: 'RecordExpr', a: a};
-};
-var $elm_community$json_extra$Json$Decode$Extra$combine = A2(
-	$elm$core$List$foldr,
-	$elm$json$Json$Decode$map2($elm$core$List$cons),
-	$elm$json$Json$Decode$succeed(_List_Nil));
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $stil4m$elm_syntax$Elm$Syntax$Node$Node = F2(
-	function (a, b) {
-		return {$: 'Node', a: a, b: b};
-	});
-var $stil4m$elm_syntax$Elm$Syntax$Range$emptyRange = {
-	end: {column: 0, row: 0},
-	start: {column: 0, row: 0}
-};
-var $author$project$Content$Internal$node = $stil4m$elm_syntax$Elm$Syntax$Node$Node($stil4m$elm_syntax$Elm$Syntax$Range$emptyRange);
-var $author$project$Content$Decode$anonymousRecord = function (attributes) {
-	return $author$project$Content$Decode$Internal$Decoder(
-		{
-			actions: function (decodedList) {
-				return $elm$core$List$concat(
-					A2(
-						$elm$core$List$map,
-						function (decoded) {
-							return decoded.actions;
-						},
-						decodedList));
-			},
-			asExpression: function (decodedList) {
-				return $stil4m$elm_syntax$Elm$Syntax$Expression$RecordExpr(
-					A2(
-						$elm$core$List$map,
-						function (decoded) {
-							return $author$project$Content$Internal$node(
-								_Utils_Tuple2(
-									$author$project$Content$Internal$node(decoded.keyName),
-									$author$project$Content$Internal$node(decoded.expression)));
-						},
-						decodedList));
-			},
-			imports: $elm$core$List$concat(
-				A2(
-					$elm$core$List$map,
-					function (_v0) {
-						var attribute_ = _v0.a;
-						return attribute_.imports;
-					},
-					attributes)),
-			jsonDecoder: function (args) {
-				return $elm_community$json_extra$Json$Decode$Extra$combine(
-					A2(
-						$elm$core$List$map,
-						function (_v1) {
-							var attribute_ = _v1.a;
-							return attribute_.jsonDecoder(args);
-						},
-						attributes));
-			},
-			typeAnnotation: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Record(
-				A2(
-					$elm$core$List$map,
-					function (_v2) {
-						var attribute_ = _v2.a;
-						return $author$project$Content$Internal$node(attribute_.typeAnnotation);
-					},
-					attributes))
-		});
-};
-var $author$project$Content$Decode$Internal$Attribute = function (a) {
-	return {$: 'Attribute', a: a};
-};
-var $elm$json$Json$Decode$map = _Json_map1;
-var $author$project$Content$Decode$attribute = F2(
-	function (keyName, _v0) {
-		var decoder = _v0.a;
-		return $author$project$Content$Decode$Internal$Attribute(
-			{
-				imports: decoder.imports,
-				jsonDecoder: function (args) {
-					return A2(
-						$elm$json$Json$Decode$map,
-						function (value) {
-							return {
-								actions: decoder.actions(value),
-								expression: decoder.asExpression(value),
-								keyName: keyName
-							};
-						},
-						A2(
-							$elm$json$Json$Decode$field,
-							keyName,
-							decoder.jsonDecoder(args)));
-				},
-				typeAnnotation: _Utils_Tuple2(
-					$author$project$Content$Internal$node(keyName),
-					$author$project$Content$Internal$node(decoder.typeAnnotation))
-			});
-	});
-var $author$project$Content$Decode$Image$Internal$Batch = F2(
-	function (a, b) {
-		return {$: 'Batch', a: a, b: b};
-	});
-var $author$project$Path$base = function (_v0) {
-	var details = _v0.b;
-	return details.name;
-};
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
-var $author$project$Path$ext = function (_v0) {
-	var details = _v0.b;
-	var _v1 = $elm$core$List$reverse(
-		A2(
-			$elm$core$List$filter,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
-			A2($elm$core$String$split, '.', details.name)));
-	if (!_v1.b) {
-		return '';
-	} else {
-		var firstExt = _v1.a;
-		return firstExt;
-	}
-};
-var $author$project$Path$name = function (_v0) {
-	var details = _v0.b;
-	var _v1 = $elm$core$List$reverse(
-		A2(
-			$elm$core$List$filter,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
-			A2($elm$core$String$split, '.', details.name)));
-	if (!_v1.b) {
-		return '';
-	} else {
-		var restExts = _v1.b;
-		return A2(
-			$elm$core$String$join,
-			'.',
-			$elm$core$List$reverse(restExts));
-	}
-};
-var $author$project$Content$Decode$Image$Internal$createActionDetails = F6(
-	function (copyArgs, manipulations, inputFilePath, copyFromPath, copyToPath, rewritePath) {
-		if (manipulations.$ === 'Single') {
-			var manipulationChain = manipulations.a;
-			return _Utils_Tuple2(
-				{
-					manipulations: manipulationChain,
-					paths: {
-						copyFromBase: inputFilePath,
-						copyFromPath: copyFromPath,
-						copyToPath: copyToPath,
-						fileName: $author$project$Path$base(copyFromPath),
-						modifierName: '',
-						rewritePath: rewritePath
-					}
-				},
-				_List_Nil);
-		} else {
-			var firstManipulationChain = manipulations.a;
-			var manipulationChainList = manipulations.b;
-			var actionDetails = function (_v1) {
-				var modifierName = _v1.a;
-				var manipulationChain = _v1.b;
-				return {
-					manipulations: manipulationChain,
-					paths: {
-						copyFromBase: inputFilePath,
-						copyFromPath: copyFromPath,
-						copyToPath: copyToPath,
-						fileName: $author$project$Path$name(copyFromPath) + ('-' + (modifierName + $author$project$Path$ext(copyFromPath))),
-						modifierName: modifierName,
-						rewritePath: rewritePath
-					}
-				};
-			};
-			return _Utils_Tuple2(
-				actionDetails(firstManipulationChain),
-				A2($elm$core$List$map, actionDetails, manipulationChainList));
-		}
-	});
-var $author$project$Path$dir = function (_v0) {
-	var details = _v0.b;
-	var _v1 = details.root;
-	if (_v1.$ === 'Just') {
-		var root = _v1.a;
-		return _Utils_ap(root, details.dir);
-	} else {
-		return details.dir;
-	}
-};
-var $author$project$Path$Posix$separator = $elm$core$String$fromChar($author$project$Path$Internal$posixSeparator);
-var $author$project$Path$fromList = F2(
-	function (os, strs) {
-		if (os.$ === 'Win32') {
-			var _v1 = A2(
-				$elm$core$List$filter,
-				A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
-				strs);
-			if (!_v1.b) {
-				return $author$project$Path$Win32$fromString('.');
-			} else {
-				var firstStr = _v1.a;
-				var restStrs = _v1.b;
-				var _v2 = $author$project$Path$Win32$fromString(firstStr);
-				if (_v2.$ === 'Ok') {
-					var _v3 = _v2.a;
-					var details = _v3.b;
-					return ((!_Utils_eq(details.root, $elm$core$Maybe$Nothing)) && ((details.dir === '.') && (details.name === ''))) ? $author$project$Path$Win32$fromString(
-						_Utils_ap(
-							firstStr,
-							A2($elm$core$String$join, $author$project$Path$Win32$separator, restStrs))) : $author$project$Path$Win32$fromString(
-						_Utils_ap(
-							_Utils_ap(firstStr, $author$project$Path$Win32$separator),
-							A2($elm$core$String$join, $author$project$Path$Win32$separator, restStrs)));
-				} else {
-					var err = _v2.a;
-					return $elm$core$Result$Err(err);
-				}
-			}
-		} else {
-			return $author$project$Path$Posix$fromString(
-				A2(
-					$elm$core$String$join,
-					_Utils_ap($author$project$Path$Posix$separator, $author$project$Path$Posix$separator),
-					A2(
-						$elm$core$List$filter,
-						A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
-						strs)));
-		}
-	});
-var $elm$core$Result$map3 = F4(
-	function (func, ra, rb, rc) {
-		if (ra.$ === 'Err') {
-			var x = ra.a;
-			return $elm$core$Result$Err(x);
-		} else {
-			var a = ra.a;
-			if (rb.$ === 'Err') {
-				var x = rb.a;
-				return $elm$core$Result$Err(x);
-			} else {
-				var b = rb.a;
-				if (rc.$ === 'Err') {
-					var x = rc.a;
-					return $elm$core$Result$Err(x);
-				} else {
-					var c = rc.a;
-					return $elm$core$Result$Ok(
-						A3(func, a, b, c));
-				}
-			}
-		}
-	});
-var $author$project$Path$platform = function (_v0) {
-	var os = _v0.a;
-	return os;
-};
-var $author$project$Content$Decode$Image$Internal$createActions = F4(
-	function (args, copyArgs, manipulations, originalSrc) {
-		var rewritePathResult = A2(
-			$author$project$Path$fromList,
-			$author$project$Path$platform(args.inputFilePath),
-			_List_fromArray(
-				[
-					copyArgs.publicDirectory,
-					$author$project$Path$dir(args.inputFilePath)
-				]));
-		var copyToPathResult = A2(
-			$author$project$Path$fromList,
-			$author$project$Path$platform(args.inputFilePath),
-			_List_fromArray(
-				[
-					copyArgs.copyToDirectory,
-					$author$project$Path$dir(args.inputFilePath)
-				]));
-		var copyFromPathResult = A2(
-			$author$project$Path$fromString,
-			$author$project$Path$platform(args.inputFilePath),
-			originalSrc);
-		var _v0 = A4(
-			$elm$core$Result$map3,
-			F3(
-				function (a, b, c) {
-					return _Utils_Tuple3(a, b, c);
-				}),
-			copyFromPathResult,
-			copyToPathResult,
-			rewritePathResult);
-		if (_v0.$ === 'Ok') {
-			var _v1 = _v0.a;
-			var copyFromPath = _v1.a;
-			var copyToPath = _v1.b;
-			var rewritePath = _v1.c;
-			return $elm$json$Json$Decode$succeed(
-				A6($author$project$Content$Decode$Image$Internal$createActionDetails, copyArgs, manipulations, args.inputFilePath, copyFromPath, copyToPath, rewritePath));
-		} else {
-			var err = _v0.a;
-			return $elm$json$Json$Decode$fail(
-				$elm$parser$Parser$deadEndsToString(err));
-		}
-	});
-var $elm$json$Json$Encode$list = F2(
-	function (func, entries) {
-		return _Json_wrap(
-			A3(
-				$elm$core$List$foldl,
-				_Json_addEntry(func),
-				_Json_emptyArray(_Utils_Tuple0),
-				entries));
-	});
-var $elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v0, obj) {
-					var k = _v0.a;
-					var v = _v0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(_Utils_Tuple0),
-			pairs));
-};
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Path$Platform$separator = function (os) {
-	if (os.$ === 'Win32') {
-		return $author$project$Path$Win32$separator;
-	} else {
-		return $author$project$Path$Posix$separator;
-	}
-};
-var $author$project$Path$toString = function (_v0) {
-	var os = _v0.a;
-	var details = _v0.b;
-	var dir_ = $elm$core$String$isEmpty(details.dir) ? '' : ($elm$core$String$isEmpty(details.name) ? details.dir : _Utils_ap(
-		details.dir,
-		$author$project$Path$Platform$separator(os)));
-	var _v1 = details.root;
-	if (_v1.$ === 'Just') {
-		var root = _v1.a;
-		return _Utils_ap(
-			root,
-			_Utils_ap(dir_, details.name));
-	} else {
-		return _Utils_ap(dir_, details.name);
-	}
-};
-var $author$project$Content$Decode$Image$Internal$encodeActionDetails = function (imageArgs) {
-	return $elm$json$Json$Encode$object(
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				'paths',
-				$elm$json$Json$Encode$object(
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							'copyFromBase',
-							$elm$json$Json$Encode$string(
-								$author$project$Path$toString(imageArgs.paths.copyFromBase))),
-							_Utils_Tuple2(
-							'copyFromPath',
-							$elm$json$Json$Encode$string(
-								$author$project$Path$toString(imageArgs.paths.copyFromPath))),
-							_Utils_Tuple2(
-							'copyToPath',
-							$elm$json$Json$Encode$string(
-								$author$project$Path$toString(imageArgs.paths.copyToPath))),
-							_Utils_Tuple2(
-							'fileName',
-							$elm$json$Json$Encode$string(imageArgs.paths.fileName))
-						]))),
-				_Utils_Tuple2(
-				'manipulations',
-				A2(
-					$elm$json$Json$Encode$list,
-					function (manipulation) {
-						return $elm$json$Json$Encode$object(
-							_List_fromArray(
-								[
-									_Utils_Tuple2(
-									'function',
-									$elm$json$Json$Encode$string(manipulation._function)),
-									_Utils_Tuple2('args', manipulation.args)
-								]));
-					},
-					imageArgs.manipulations))
-			]));
-};
-var $stil4m$elm_syntax$Elm$Syntax$Expression$ListExpr = function (a) {
-	return {$: 'ListExpr', a: a};
-};
-var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed = F2(
-	function (a, b) {
-		return {$: 'Typed', a: a, b: b};
-	});
-var $author$project$Content$Decode$Syntax$list = function (item) {
-	return {
-		expression: function (decoded) {
-			return $stil4m$elm_syntax$Elm$Syntax$Expression$ListExpr(
-				A2(
-					$elm$core$List$map,
-					A2($elm$core$Basics$composeL, $author$project$Content$Internal$node, item.expression),
-					decoded));
-		},
-		imports: item.imports,
-		typeAnnotation: A2(
-			$stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed,
-			$author$project$Content$Internal$node(
-				_Utils_Tuple2(_List_Nil, 'List')),
-			_List_fromArray(
-				[
-					$author$project$Content$Internal$node(item.typeAnnotation)
-				]))
-	};
-};
-var $elm$regex$Regex$findAtMost = _Regex_findAtMost;
-var $elm_community$string_extra$String$Extra$firstResultHelp = F2(
-	function (_default, list) {
-		firstResultHelp:
-		while (true) {
-			if (!list.b) {
-				return _default;
-			} else {
-				if (list.a.$ === 'Just') {
-					var a = list.a.a;
-					return a;
-				} else {
-					var _v1 = list.a;
-					var rest = list.b;
-					var $temp$default = _default,
-						$temp$list = rest;
-					_default = $temp$default;
-					list = $temp$list;
-					continue firstResultHelp;
-				}
-			}
-		}
-	});
-var $elm_community$string_extra$String$Extra$firstResult = function (list) {
-	return A2($elm_community$string_extra$String$Extra$firstResultHelp, '', list);
-};
-var $elm$regex$Regex$replace = _Regex_replaceAtMost(_Regex_infinity);
-var $elm_community$string_extra$String$Extra$regexEscape = A2(
-	$elm$regex$Regex$replace,
-	$elm_community$string_extra$String$Extra$regexFromString('[-/\\^$*+?.()|[\\]{}]'),
-	function (_v0) {
-		var match = _v0.match;
-		return '\\' + match;
-	});
-var $elm_community$string_extra$String$Extra$leftOf = F2(
-	function (pattern, string) {
-		return A2(
-			$elm$core$String$join,
-			'',
-			A2(
-				$elm$core$List$map,
-				A2(
-					$elm$core$Basics$composeR,
-					function ($) {
-						return $.submatches;
-					},
-					$elm_community$string_extra$String$Extra$firstResult),
-				A3(
-					$elm$regex$Regex$findAtMost,
-					1,
-					$elm_community$string_extra$String$Extra$regexFromString(
-						'^(.*?)' + $elm_community$string_extra$String$Extra$regexEscape(pattern)),
-					string)));
-	});
-var $author$project$Path$Internal$standardisePathSeparators = F2(
-	function (os, str) {
-		if (os.$ === 'Win32') {
-			return A3(
-				$elm$core$String$replace,
-				$elm$core$String$fromChar($author$project$Path$Internal$posixSeparator),
-				$elm$core$String$fromChar($author$project$Path$Internal$win32Separator),
-				str);
-		} else {
-			return str;
-		}
-	});
-var $author$project$Path$push = F2(
-	function (piece, _v0) {
-		var os = _v0.a;
-		var details = _v0.b;
-		var cleanedPiece = A2(
-			$elm_community$string_extra$String$Extra$leftOf,
-			$author$project$Path$Platform$separator(os),
-			A2($author$project$Path$Internal$standardisePathSeparators, os, piece));
-		return A2(
-			$author$project$Path$Internal$Path,
-			os,
-			_Utils_update(
-				details,
-				{name: cleanedPiece}));
-	});
-var $stil4m$elm_syntax$Elm$Syntax$Expression$Literal = function (a) {
-	return {$: 'Literal', a: a};
-};
-var $author$project$Content$Decode$Syntax$string = {
-	expression: A2(
-		$elm$core$Basics$composeL,
-		$stil4m$elm_syntax$Elm$Syntax$Expression$Literal,
-		A2($elm$core$String$replace, '\"', '\\\"')),
-	imports: _List_Nil,
-	typeAnnotation: A2(
-		$stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed,
-		$author$project$Content$Internal$node(
-			_Utils_Tuple2(_List_Nil, 'String')),
-		_List_Nil)
-};
-var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Tupled = function (a) {
-	return {$: 'Tupled', a: a};
-};
-var $stil4m$elm_syntax$Elm$Syntax$Expression$TupledExpression = function (a) {
-	return {$: 'TupledExpression', a: a};
-};
-var $author$project$Content$Decode$Syntax$tuple2 = function (_v0) {
-	var itemA = _v0.a;
-	var itemB = _v0.b;
-	return {
-		expression: function (_v1) {
-			var decodedA = _v1.a;
-			var decodedB = _v1.b;
-			return $stil4m$elm_syntax$Elm$Syntax$Expression$TupledExpression(
-				_List_fromArray(
-					[
-						$author$project$Content$Internal$node(
-						itemA.expression(decodedA)),
-						$author$project$Content$Internal$node(
-						itemB.expression(decodedB))
-					]));
-		},
-		imports: $elm$core$List$concat(
-			_List_fromArray(
-				[itemA.imports, itemB.imports])),
-		typeAnnotation: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Tupled(
-			_List_fromArray(
-				[
-					$author$project$Content$Internal$node(itemA.typeAnnotation),
-					$author$project$Content$Internal$node(itemB.typeAnnotation)
-				]))
-	};
-};
-var $author$project$Content$Decode$Image$batchProcess = F3(
-	function (copyArgs, firstManipulation, manipulations) {
-		var syntax = $author$project$Content$Decode$Syntax$tuple2(
-			_Utils_Tuple2(
-				$author$project$Content$Decode$Syntax$tuple2(
-					_Utils_Tuple2($author$project$Content$Decode$Syntax$string, $author$project$Content$Decode$Syntax$string)),
-				$author$project$Content$Decode$Syntax$list(
-					$author$project$Content$Decode$Syntax$tuple2(
-						_Utils_Tuple2($author$project$Content$Decode$Syntax$string, $author$project$Content$Decode$Syntax$string)))));
-		return $author$project$Content$Decode$Internal$Decoder(
-			{
-				actions: function (_v0) {
-					var firstActionDetails = _v0.a;
-					var restActionDetails = _v0.b;
-					return A2(
-						$elm$core$List$map,
-						function (actionDetails) {
-							return {
-								args: $author$project$Content$Decode$Image$Internal$encodeActionDetails(actionDetails),
-								_with: 'image'
-							};
-						},
-						A2($elm$core$List$cons, firstActionDetails, restActionDetails));
-				},
-				asExpression: function (_v1) {
-					var firstActionDetails = _v1.a;
-					var restActionDetails = _v1.b;
-					return syntax.expression(
-						_Utils_Tuple2(
-							_Utils_Tuple2(
-								firstActionDetails.paths.modifierName,
-								$author$project$Path$toString(
-									A2($author$project$Path$push, firstActionDetails.paths.fileName, firstActionDetails.paths.rewritePath))),
-							A2(
-								$elm$core$List$map,
-								function (actionDetails) {
-									return _Utils_Tuple2(
-										actionDetails.paths.modifierName,
-										$author$project$Path$toString(
-											A2($author$project$Path$push, actionDetails.paths.fileName, actionDetails.paths.rewritePath)));
-								},
-								restActionDetails)));
-				},
-				imports: _List_Nil,
-				jsonDecoder: function (args) {
-					return A2(
-						$elm$json$Json$Decode$andThen,
-						A3(
-							$author$project$Content$Decode$Image$Internal$createActions,
-							args,
-							copyArgs,
-							A2($author$project$Content$Decode$Image$Internal$Batch, firstManipulation, manipulations)),
-						$elm$json$Json$Decode$string);
-				},
-				typeAnnotation: syntax.typeAnnotation
-			});
-	});
-var $author$project$Content$Decode$Internal$Declaration = function (a) {
-	return {$: 'Declaration', a: a};
-};
-var $author$project$Content$Decode$fromSyntax = F2(
-	function (syntax, jsonDecoder) {
-		return $author$project$Content$Decode$Internal$Decoder(
-			{
-				actions: $elm$core$Basics$always(_List_Nil),
-				asExpression: syntax.expression,
-				imports: syntax.imports,
-				jsonDecoder: jsonDecoder,
-				typeAnnotation: syntax.typeAnnotation
-			});
-	});
-var $author$project$Content$Decode$string = A2(
-	$author$project$Content$Decode$fromSyntax,
-	$author$project$Content$Decode$Syntax$string,
-	$elm$core$Basics$always($elm$json$Json$Decode$string));
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
-var $elm_community$list_extra$List$Extra$uniqueHelp = F4(
-	function (f, existing, remaining, accumulator) {
-		uniqueHelp:
-		while (true) {
-			if (!remaining.b) {
-				return $elm$core$List$reverse(accumulator);
-			} else {
-				var first = remaining.a;
-				var rest = remaining.b;
-				var computedFirst = f(first);
-				if (A2($elm$core$List$member, computedFirst, existing)) {
-					var $temp$f = f,
-						$temp$existing = existing,
-						$temp$remaining = rest,
-						$temp$accumulator = accumulator;
-					f = $temp$f;
-					existing = $temp$existing;
-					remaining = $temp$remaining;
-					accumulator = $temp$accumulator;
-					continue uniqueHelp;
-				} else {
-					var $temp$f = f,
-						$temp$existing = A2($elm$core$List$cons, computedFirst, existing),
-						$temp$remaining = rest,
-						$temp$accumulator = A2($elm$core$List$cons, first, accumulator);
-					f = $temp$f;
-					existing = $temp$existing;
-					remaining = $temp$remaining;
-					accumulator = $temp$accumulator;
-					continue uniqueHelp;
-				}
-			}
-		}
-	});
-var $elm_community$list_extra$List$Extra$unique = function (list) {
-	return A4($elm_community$list_extra$List$Extra$uniqueHelp, $elm$core$Basics$identity, _List_Nil, list, _List_Nil);
-};
-var $author$project$Content$Decode$frontmatter = function (attributes) {
-	var _v0 = $author$project$Content$Decode$string;
-	var stringDecoder = _v0.a;
-	return $author$project$Content$Decode$Internal$Declaration(
-		{
-			imports: $elm_community$list_extra$List$Extra$unique(
-				$elm$core$List$concat(
-					A2(
-						$elm$core$List$map,
-						function (_v1) {
-							var attribute_ = _v1.a;
-							return attribute_.imports;
-						},
-						attributes))),
-			jsonDecoder: function (args) {
-				return $elm_community$json_extra$Json$Decode$Extra$combine(
-					A2(
-						$elm$core$List$append,
-						A2(
-							$elm$core$List$map,
-							function (_v2) {
-								var attribute_ = _v2.a;
-								return A2(
-									$elm$json$Json$Decode$field,
-									'data',
-									attribute_.jsonDecoder(args));
-							},
-							attributes),
-						_List_fromArray(
-							[
-								A2(
-								$elm$json$Json$Decode$map,
-								function (value) {
-									return {
-										actions: _List_Nil,
-										expression: stringDecoder.asExpression(value),
-										keyName: 'body'
-									};
-								},
-								A2(
-									$elm$json$Json$Decode$field,
-									'content',
-									stringDecoder.jsonDecoder(args)))
-							])));
-			},
-			typeAnnotation: A2(
-				$elm$core$List$append,
-				A2(
-					$elm$core$List$map,
-					function (_v3) {
-						var attribute_ = _v3.a;
-						return $author$project$Content$Internal$node(attribute_.typeAnnotation);
-					},
-					attributes),
-				_List_fromArray(
-					[
-						$author$project$Content$Internal$node(
-						_Utils_Tuple2(
-							$author$project$Content$Internal$node('body'),
-							$author$project$Content$Internal$node(stringDecoder.typeAnnotation)))
-					]))
-		});
-};
-var $author$project$Content$Decode$frontmatterWithoutBody = function (attributes) {
-	return $author$project$Content$Decode$Internal$Declaration(
-		{
-			imports: $elm_community$list_extra$List$Extra$unique(
-				$elm$core$List$concat(
-					A2(
-						$elm$core$List$map,
-						function (_v0) {
-							var attribute_ = _v0.a;
-							return attribute_.imports;
-						},
-						attributes))),
-			jsonDecoder: function (args) {
-				return A2(
-					$elm$json$Json$Decode$field,
-					'data',
-					$elm_community$json_extra$Json$Decode$Extra$combine(
-						A2(
-							$elm$core$List$map,
-							function (_v1) {
-								var attribute_ = _v1.a;
-								return attribute_.jsonDecoder(args);
-							},
-							attributes)));
-			},
-			typeAnnotation: A2(
-				$elm$core$List$map,
-				function (_v2) {
-					var attribute_ = _v2.a;
-					return $author$project$Content$Internal$node(attribute_.typeAnnotation);
-				},
-				attributes)
-		});
-};
-var $author$project$Content$Decode$Internal$NotFound = function (a) {
-	return {$: 'NotFound', a: a};
-};
-var $author$project$Content$Decode$ignore = $author$project$Content$Decode$Internal$NotFound(
-	{_throw: false});
-var $author$project$Content$imageCopyArgs = {copyToDirectory: '../static/image-gen/', publicDirectory: '/static/image-gen/'};
-var $stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue = F2(
-	function (a, b) {
-		return {$: 'FunctionOrValue', a: a, b: b};
-	});
-var $elm_community$string_extra$String$Extra$changeCase = F2(
-	function (mutator, word) {
-		return A2(
-			$elm$core$Maybe$withDefault,
-			'',
-			A2(
-				$elm$core$Maybe$map,
-				function (_v0) {
-					var head = _v0.a;
-					var tail = _v0.b;
-					return A2(
-						$elm$core$String$cons,
-						mutator(head),
-						tail);
-				},
-				$elm$core$String$uncons(word)));
-	});
-var $elm$core$Char$toLower = _Char_toLower;
-var $elm_community$string_extra$String$Extra$decapitalize = function (word) {
-	return A2($elm_community$string_extra$String$Extra$changeCase, $elm$core$Char$toLower, word);
-};
-var $author$project$Content$Internal$Bracketed = function (a) {
-	return {$: 'Bracketed', a: a};
-};
-var $author$project$Content$Output$Continue = F2(
-	function (a, b) {
-		return {$: 'Continue', a: a, b: b};
-	});
-var $author$project$Content$Internal$Hidden = {$: 'Hidden'};
-var $author$project$Content$Output$Ignore = function (a) {
-	return {$: 'Ignore', a: a};
-};
-var $author$project$Content$Output$Info = function (a) {
-	return {$: 'Info', a: a};
-};
-var $author$project$Content$Function$ListItemFunction = {$: 'ListItemFunction'};
-var $author$project$Content$Internal$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $author$project$Content$Function$SingletonFunction = {$: 'SingletonFunction'};
-var $author$project$Content$Output$Terminate = function (a) {
-	return {$: 'Terminate', a: a};
-};
-var $elm$core$Result$andThen = F2(
-	function (callback, result) {
-		if (result.$ === 'Ok') {
-			var value = result.a;
-			return callback(value);
-		} else {
-			var msg = result.a;
-			return $elm$core$Result$Err(msg);
-		}
-	});
-var $elm$core$String$toUpper = _String_toUpper;
-var $elm$core$String$trim = _String_trim;
-var $elm_community$string_extra$String$Extra$camelize = function (string) {
-	return A3(
-		$elm$regex$Regex$replace,
-		$elm_community$string_extra$String$Extra$regexFromString('[-_\\s]+(.)?'),
-		function (_v0) {
-			var submatches = _v0.submatches;
-			if (submatches.b && (submatches.a.$ === 'Just')) {
-				var match = submatches.a.a;
-				return $elm$core$String$toUpper(match);
-			} else {
-				return '';
-			}
-		},
-		$elm$core$String$trim(string));
-};
-var $elm$core$Char$toUpper = _Char_toUpper;
-var $elm_community$string_extra$String$Extra$toSentenceCase = function (word) {
-	return A2($elm_community$string_extra$String$Extra$changeCase, $elm$core$Char$toUpper, word);
-};
-var $elm_community$string_extra$String$Extra$classify = function (string) {
-	return $elm_community$string_extra$String$Extra$toSentenceCase(
-		A3(
-			$elm$core$String$replace,
-			' ',
-			'',
-			$elm_community$string_extra$String$Extra$camelize(
-				A3(
-					$elm$regex$Regex$replace,
-					$elm_community$string_extra$String$Extra$regexFromString('[\\W_]'),
-					$elm$core$Basics$always(' '),
-					string))));
-};
-var $elm$core$Result$map2 = F3(
-	function (func, ra, rb) {
-		if (ra.$ === 'Err') {
-			var x = ra.a;
-			return $elm$core$Result$Err(x);
-		} else {
-			var a = ra.a;
-			if (rb.$ === 'Err') {
-				var x = rb.a;
-				return $elm$core$Result$Err(x);
-			} else {
-				var b = rb.a;
-				return $elm$core$Result$Ok(
-					A2(func, a, b));
-			}
-		}
-	});
-var $elm_community$result_extra$Result$Extra$combine = A2(
-	$elm$core$List$foldr,
-	$elm$core$Result$map2($elm$core$List$cons),
-	$elm$core$Result$Ok(_List_Nil));
-var $elm$core$String$endsWith = _String_endsWith;
-var $author$project$Path$toList = function (_v0) {
-	var os = _v0.a;
-	var details = _v0.b;
-	return A2(
-		$elm$core$List$filter,
-		A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
-		_Utils_ap(
-			A2(
-				$elm$core$String$split,
-				$author$project$Path$Platform$separator(os),
-				details.dir),
-			_List_fromArray(
-				[details.name])));
-};
-var $author$project$Content$Function$fromPath = function (filePath) {
-	var continuePath = function (pieces) {
-		if (!pieces.b) {
-			return $elm$core$Result$Err(
-				{message: 'Empty file path', terminate: false});
-		} else {
-			if (!pieces.b.b) {
-				var file = pieces.a;
-				switch (file.$) {
-					case 'Hidden':
-						return $elm$core$Result$Err(
-							{message: 'Ignoring hidden file', terminate: false});
-					case 'Bracketed':
-						if (file.a === 'Content') {
-							return $elm$core$Result$Err(
-								{message: 'Invalid [content].* file', terminate: true});
-						} else {
-							var fileName = file.a;
-							return $elm$core$Result$Ok(
-								{
-									_function: $elm$core$Maybe$Just(
-										_Utils_Tuple2(
-											$author$project$Content$Function$ListItemFunction,
-											$elm_community$string_extra$String$Extra$decapitalize(fileName))),
-									moduleDir: _List_Nil
-								});
-						}
-					default:
-						if (file.a === 'Content') {
-							return $elm$core$Result$Ok(
-								{_function: $elm$core$Maybe$Nothing, moduleDir: _List_Nil});
-						} else {
-							var fileName = file.a;
-							return $elm$core$Result$Ok(
-								{
-									_function: $elm$core$Maybe$Just(
-										_Utils_Tuple2($author$project$Content$Function$SingletonFunction, 'content')),
-									moduleDir: _List_fromArray(
-										[fileName])
-								});
-						}
-				}
-			} else {
-				var folder = pieces.a;
-				var restPath = pieces.b;
-				var fillInModuleDir = F2(
-					function (moduleName, details) {
-						return _Utils_update(
-							details,
-							{
-								moduleDir: A2($elm$core$List$cons, moduleName, details.moduleDir)
-							});
-					});
-				var fillInFunction = F2(
-					function (_function, details) {
-						var _v3 = details._function;
-						if (_v3.$ === 'Just') {
-							return details;
-						} else {
-							return _Utils_update(
-								details,
-								{
-									_function: $elm$core$Maybe$Just(_function)
-								});
-						}
-					});
-				switch (folder.$) {
-					case 'Hidden':
-						return $elm$core$Result$Err(
-							{message: 'Ignoring hidden folder', terminate: false});
-					case 'Bracketed':
-						if (folder.a === 'Content') {
-							return $elm$core$Result$Err(
-								{message: 'Invalid [content] folder', terminate: true});
-						} else {
-							var folderName = folder.a;
-							return A2(
-								$elm$core$Result$map,
-								fillInFunction(
-									_Utils_Tuple2(
-										$author$project$Content$Function$ListItemFunction,
-										$elm_community$string_extra$String$Extra$decapitalize(folderName))),
-								continuePath(restPath));
-						}
-					default:
-						if (folder.a === 'Content') {
-							return $elm$core$Result$Err(
-								{message: 'Invalid content folder', terminate: true});
-						} else {
-							var folderName = folder.a;
-							return A2(
-								$elm$core$Result$map,
-								fillInFunction(
-									_Utils_Tuple2($author$project$Content$Function$SingletonFunction, 'content')),
-								A2(
-									$elm$core$Result$map,
-									fillInModuleDir(
-										$elm_community$string_extra$String$Extra$classify(folderName)),
-									continuePath(restPath)));
-						}
-				}
-			}
-		}
-	};
-	var cleanFilePiece = function (fullPiece) {
-		var _v8 = A2(
-			$author$project$Path$fromString,
-			$author$project$Path$platform(filePath),
-			fullPiece);
-		if (_v8.$ === 'Ok') {
-			var piecePath = _v8.a;
-			return A2(
-				$elm$core$String$startsWith,
-				'.',
-				$author$project$Path$name(piecePath)) ? $elm$core$Result$Ok($author$project$Content$Internal$Hidden) : ((A2(
-				$elm$core$String$startsWith,
-				'[',
-				$author$project$Path$name(piecePath)) && A2(
-				$elm$core$String$endsWith,
-				']',
-				$author$project$Path$name(piecePath))) ? $elm$core$Result$Ok(
-				$author$project$Content$Internal$Bracketed(
-					$elm_community$string_extra$String$Extra$classify(
-						$author$project$Path$name(piecePath)))) : $elm$core$Result$Ok(
-				$author$project$Content$Internal$Normal(
-					$elm_community$string_extra$String$Extra$classify(
-						$author$project$Path$name(piecePath)))));
-		} else {
-			var err = _v8.a;
-			return $elm$core$Result$Err(
-				{
-					message: $elm$parser$Parser$deadEndsToString(err),
-					terminate: true
-				});
-		}
-	};
-	var _v4 = A2(
-		$elm$core$Result$andThen,
-		continuePath,
-		$elm_community$result_extra$Result$Extra$combine(
-			A2(
-				$elm$core$List$map,
-				cleanFilePiece,
-				$author$project$Path$toList(filePath))));
-	if (_v4.$ === 'Ok') {
-		var details = _v4.a;
-		var _v5 = details._function;
-		if (_v5.$ === 'Nothing') {
-			return $author$project$Content$Output$Terminate('Invalid top-level content.* file');
-		} else {
-			var _v6 = _v5.a;
-			var functionType = _v6.a;
-			var functionName = _v6.b;
-			var _v7 = details.moduleDir;
-			if (!_v7.b) {
-				return $author$project$Content$Output$Terminate(
-					'Invalid top-level [*].* file: ' + $author$project$Path$toString(filePath));
-			} else {
-				return A2(
-					$author$project$Content$Output$Continue,
-					_List_Nil,
-					{
-						moduleDir: A2($elm$core$List$cons, 'Content', details.moduleDir),
-						name: functionName,
-						type_: functionType
-					});
-			}
-		}
-	} else {
-		var err = _v4.a;
-		return err.terminate ? $author$project$Content$Output$Terminate(err.message) : $author$project$Content$Output$Ignore(
-			_List_fromArray(
-				[
-					$author$project$Content$Output$Info(err.message)
-				]));
-	}
-};
-var $author$project$Content$Type$toModuleDir = function (path) {
-	if (path.$ === 'Single') {
-		var modules = path.a;
-		return A2($elm$core$String$split, '.', modules);
-	} else {
-		var modules = path.a;
-		return A2($elm$core$String$split, '.', modules);
-	}
-};
-var $author$project$Content$Type$toTypeName = function (path) {
-	if (path.$ === 'Single') {
-		return 'Content';
-	} else {
-		return 'ListItem';
-	}
-};
-var $author$project$Content$Decode$link = function (typePath) {
-	var typeName = $author$project$Content$Type$toTypeName(typePath);
-	var moduleDir = $author$project$Content$Type$toModuleDir(typePath);
-	return $author$project$Content$Decode$Internal$Decoder(
-		{
-			actions: $elm$core$Basics$always(_List_Nil),
-			asExpression: function (_v0) {
-				var functionName = _v0.b;
-				return A2(
-					$stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue,
-					moduleDir,
-					$elm_community$string_extra$String$Extra$decapitalize(functionName));
-			},
-			imports: _List_fromArray(
-				[
-					{
-					exposingList: $elm$core$Maybe$Nothing,
-					moduleAlias: $elm$core$Maybe$Nothing,
-					moduleName: $author$project$Content$Internal$node(moduleDir)
-				}
-				]),
-			jsonDecoder: function (args) {
-				return A2(
-					$elm$json$Json$Decode$andThen,
-					function (filePathStr) {
-						var _v1 = A2(
-							$author$project$Path$fromString,
-							$author$project$Path$platform(args.inputFilePath),
-							filePathStr);
-						if (_v1.$ === 'Ok') {
-							var filePath = _v1.a;
-							var _v2 = $author$project$Content$Function$fromPath(filePath);
-							if (_v2.$ === 'Continue') {
-								var _function = _v2.b;
-								var _v3 = _function.type_;
-								if (_v3.$ === 'ListItemFunction') {
-									return $elm$json$Json$Decode$succeed(
-										_Utils_Tuple2(_function.moduleDir, _function.name));
-								} else {
-									return $elm$json$Json$Decode$succeed(
-										_Utils_Tuple2(_function.moduleDir, _function.name));
-								}
-							} else {
-								return $elm$json$Json$Decode$fail('Couldn\'t find file path ' + filePathStr);
-							}
-						} else {
-							return $elm$json$Json$Decode$fail('Invalid file path ' + filePathStr);
-						}
-					},
-					$elm$json$Json$Decode$string);
-			},
-			typeAnnotation: A2(
-				$stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed,
-				$author$project$Content$Internal$node(
-					_Utils_Tuple2(moduleDir, typeName)),
-				_List_Nil)
-		});
-};
-var $author$project$Content$Decode$Syntax$fromDecoder = function (_v0) {
-	var decoder = _v0.a;
-	return {expression: decoder.asExpression, imports: decoder.imports, typeAnnotation: decoder.typeAnnotation};
-};
-var $elm$json$Json$Decode$list = _Json_decodeList;
-var $author$project$Content$Decode$list = function (_v0) {
-	var decoder = _v0.a;
-	return A2(
-		$author$project$Content$Decode$fromSyntax,
-		$author$project$Content$Decode$Syntax$list(
-			$author$project$Content$Decode$Syntax$fromDecoder(
-				$author$project$Content$Decode$Internal$Decoder(decoder))),
-		A2($elm$core$Basics$composeL, $elm$json$Json$Decode$list, decoder.jsonDecoder));
-};
-var $author$project$Content$Decode$Image$Internal$Single = function (a) {
-	return {$: 'Single', a: a};
-};
-var $author$project$Content$Decode$Image$process = F2(
-	function (copyArgs, manipulations) {
-		return $author$project$Content$Decode$Internal$Decoder(
-			{
-				actions: function (_v0) {
-					var firstActionDetails = _v0.a;
-					return _List_fromArray(
-						[
-							{
-							args: $author$project$Content$Decode$Image$Internal$encodeActionDetails(firstActionDetails),
-							_with: 'image'
-						}
-						]);
-				},
-				asExpression: function (_v1) {
-					var firstActionDetails = _v1.a;
-					return $author$project$Content$Decode$Syntax$string.expression(
-						$author$project$Path$toString(
-							A2($author$project$Path$push, firstActionDetails.paths.fileName, firstActionDetails.paths.rewritePath)));
-				},
-				imports: _List_Nil,
-				jsonDecoder: function (args) {
-					return A2(
-						$elm$json$Json$Decode$andThen,
-						A3(
-							$author$project$Content$Decode$Image$Internal$createActions,
-							args,
-							copyArgs,
-							$author$project$Content$Decode$Image$Internal$Single(manipulations)),
-						$elm$json$Json$Decode$string);
-				},
-				typeAnnotation: $author$project$Content$Decode$Syntax$string.typeAnnotation
-			});
-	});
-var $author$project$Content$Decode$Internal$Found = function (a) {
-	return {$: 'Found', a: a};
-};
-var $author$project$Content$Decode$use = $author$project$Content$Decode$Internal$Found;
-var $elm$json$Json$Encode$int = _Json_wrap;
-var $author$project$Content$Decode$Image$width = function (resizeToWidth) {
-	return {
-		args: $elm$json$Json$Encode$int(resizeToWidth),
-		_function: 'width'
-	};
-};
-var $author$project$Content$decoder = function (typePath) {
-	_v0$6:
-	while (true) {
-		if (typePath.$ === 'Single') {
-			switch (typePath.a) {
-				case 'Content.About':
-					return $author$project$Content$Decode$use(
-						$author$project$Content$Decode$frontmatter(
-							_List_fromArray(
-								[
-									A2($author$project$Content$Decode$attribute, 'title', $author$project$Content$Decode$string),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'banner',
-									A2(
-										$author$project$Content$Decode$Image$process,
-										$author$project$Content$imageCopyArgs,
-										_List_fromArray(
-											[
-												$author$project$Content$Decode$Image$width(1600)
-											]))),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'who',
-									$author$project$Content$Decode$link(
-										$author$project$Content$Type$Single('Content.About.Who'))),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'why',
-									$author$project$Content$Decode$link(
-										$author$project$Content$Type$Single('Content.About.Why'))),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'how',
-									$author$project$Content$Decode$link(
-										$author$project$Content$Type$Single('Content.About.How'))),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'record',
-									$author$project$Content$Decode$anonymousRecord(
-										_List_fromArray(
-											[
-												A2($author$project$Content$Decode$attribute, 'field1', $author$project$Content$Decode$string),
-												A2($author$project$Content$Decode$attribute, 'field2', $author$project$Content$Decode$string)
-											])))
-								])));
-				case 'Content.About.Who':
-					return $author$project$Content$Decode$use(
-						$author$project$Content$Decode$frontmatter(
-							_List_fromArray(
-								[
-									A2($author$project$Content$Decode$attribute, 'title', $author$project$Content$Decode$string),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'people',
-									$author$project$Content$Decode$list(
-										$author$project$Content$Decode$link(
-											$author$project$Content$Type$Multiple('Content.About.People'))))
-								])));
-				case 'Content.About.Why':
-					return $author$project$Content$Decode$use(
-						$author$project$Content$Decode$frontmatterWithoutBody(
-							_List_fromArray(
-								[
-									A2($author$project$Content$Decode$attribute, 'title', $author$project$Content$Decode$string),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'reasons',
-									$author$project$Content$Decode$list(
-										$author$project$Content$Decode$link(
-											$author$project$Content$Type$Multiple('Content.About.Why.Reasons'))))
-								])));
-				case 'Content.About.How':
-					return $author$project$Content$Decode$use(
-						$author$project$Content$Decode$frontmatter(
-							_List_fromArray(
-								[
-									A2($author$project$Content$Decode$attribute, 'title', $author$project$Content$Decode$string),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'images',
-									$author$project$Content$Decode$list(
-										A2($author$project$Content$Decode$Image$process, $author$project$Content$imageCopyArgs, _List_Nil)))
-								])));
-				default:
-					break _v0$6;
-			}
-		} else {
-			switch (typePath.a) {
-				case 'Content.About.People':
-					return $author$project$Content$Decode$use(
-						$author$project$Content$Decode$frontmatterWithoutBody(
-							_List_fromArray(
-								[
-									A2($author$project$Content$Decode$attribute, 'name', $author$project$Content$Decode$string),
-									A2($author$project$Content$Decode$attribute, 'position', $author$project$Content$Decode$string),
-									A2(
-									$author$project$Content$Decode$attribute,
-									'thumbnail',
-									A3(
-										$author$project$Content$Decode$Image$batchProcess,
-										$author$project$Content$imageCopyArgs,
-										_Utils_Tuple2(
-											'300',
-											_List_fromArray(
-												[
-													$author$project$Content$Decode$Image$width(300)
-												])),
-										_List_fromArray(
-											[
-												_Utils_Tuple2(
-												'600',
-												_List_fromArray(
-													[
-														$author$project$Content$Decode$Image$width(600)
-													])),
-												_Utils_Tuple2(
-												'1200',
-												_List_fromArray(
-													[
-														$author$project$Content$Decode$Image$width(1200)
-													]))
-											])))
-								])));
-				case 'Content.About.Why.Reasons':
-					return $author$project$Content$Decode$use(
-						$author$project$Content$Decode$frontmatter(
-							_List_fromArray(
-								[
-									A2($author$project$Content$Decode$attribute, 'title', $author$project$Content$Decode$string)
-								])));
-				default:
-					break _v0$6;
-			}
-		}
-	}
-	return $author$project$Content$Decode$ignore;
-};
-var $author$project$Content$Output$encodeMessages = function (messages) {
+var $author$project$Output$encodeMessages = function (messages) {
 	return A2(
 		$elm$core$List$map,
 		function (message) {
@@ -5821,551 +4424,472 @@ var $elm$core$Set$insert = F2(
 var $elm$core$Set$fromList = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
 };
-var $elm$core$Dict$isEmpty = function (dict) {
-	if (dict.$ === 'RBEmpty_elm_builtin') {
-		return true;
-	} else {
-		return false;
-	}
+var $author$project$Content$Internal$Bracketed = function (a) {
+	return {$: 'Bracketed', a: a};
 };
-var $elm$core$Set$isEmpty = function (_v0) {
-	var dict = _v0.a;
-	return $elm$core$Dict$isEmpty(dict);
+var $author$project$Content$Internal$Hidden = {$: 'Hidden'};
+var $author$project$Content$Function$CollectionItemFunction = {$: 'CollectionItemFunction'};
+var $author$project$Content$Internal$Normal = function (a) {
+	return {$: 'Normal', a: a};
 };
-var $author$project$Modules$modulesToList = function (filesDict) {
-	return A2(
-		$elm$core$List$map,
+var $author$project$Content$Function$PathIsEmpty = {$: 'PathIsEmpty'};
+var $author$project$Content$Function$PathIsHidden = {$: 'PathIsHidden'};
+var $author$project$Content$Function$PathIsInvalid = function (a) {
+	return {$: 'PathIsInvalid', a: a};
+};
+var $author$project$Content$Function$SingletonFunction = {$: 'SingletonFunction'};
+var $elm$core$Result$andThen = F2(
+	function (callback, result) {
+		if (result.$ === 'Ok') {
+			var value = result.a;
+			return callback(value);
+		} else {
+			var msg = result.a;
+			return $elm$core$Result$Err(msg);
+		}
+	});
+var $elm$regex$Regex$replace = _Regex_replaceAtMost(_Regex_infinity);
+var $elm$core$String$toUpper = _String_toUpper;
+var $elm$core$String$trim = _String_trim;
+var $elm_community$string_extra$String$Extra$camelize = function (string) {
+	return A3(
+		$elm$regex$Regex$replace,
+		$elm_community$string_extra$String$Extra$regexFromString('[-_\\s]+(.)?'),
 		function (_v0) {
-			var moduleDir = _v0.a;
-			var functions = _v0.b;
-			return {dir: moduleDir, functions: functions};
+			var submatches = _v0.submatches;
+			if (submatches.b && (submatches.a.$ === 'Just')) {
+				var match = submatches.a.a;
+				return $elm$core$String$toUpper(match);
+			} else {
+				return '';
+			}
 		},
-		$elm$core$Dict$toList(filesDict));
+		$elm$core$String$trim(string));
 };
-var $elm$core$Dict$singleton = F2(
-	function (key, value) {
-		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+var $elm_community$string_extra$String$Extra$changeCase = F2(
+	function (mutator, word) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			'',
+			A2(
+				$elm$core$Maybe$map,
+				function (_v0) {
+					var head = _v0.a;
+					var tail = _v0.b;
+					return A2(
+						$elm$core$String$cons,
+						mutator(head),
+						tail);
+				},
+				$elm$core$String$uncons(word)));
 	});
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
+var $elm$core$Char$toUpper = _Char_toUpper;
+var $elm_community$string_extra$String$Extra$toSentenceCase = function (word) {
+	return A2($elm_community$string_extra$String$Extra$changeCase, $elm$core$Char$toUpper, word);
+};
+var $elm_community$string_extra$String$Extra$classify = function (string) {
+	return $elm_community$string_extra$String$Extra$toSentenceCase(
+		A3(
+			$elm$core$String$replace,
+			' ',
+			'',
+			$elm_community$string_extra$String$Extra$camelize(
+				A3(
+					$elm$regex$Regex$replace,
+					$elm_community$string_extra$String$Extra$regexFromString('[\\W_]'),
+					$elm$core$Basics$always(' '),
+					string))));
+};
+var $elm$core$Result$map2 = F3(
+	function (func, ra, rb) {
+		if (ra.$ === 'Err') {
+			var x = ra.a;
+			return $elm$core$Result$Err(x);
+		} else {
+			var a = ra.a;
+			if (rb.$ === 'Err') {
+				var x = rb.a;
+				return $elm$core$Result$Err(x);
+			} else {
+				var b = rb.a;
+				return $elm$core$Result$Ok(
+					A2(func, a, b));
+			}
+		}
+	});
+var $elm_community$result_extra$Result$Extra$combine = A2(
+	$elm$core$List$foldr,
+	$elm$core$Result$map2($elm$core$List$cons),
+	$elm$core$Result$Ok(_List_Nil));
+var $elm$core$Char$toLower = _Char_toLower;
+var $elm_community$string_extra$String$Extra$decapitalize = function (word) {
+	return A2($elm_community$string_extra$String$Extra$changeCase, $elm$core$Char$toLower, word);
+};
+var $elm$core$String$endsWith = _String_endsWith;
+var $elm$core$String$dropRight = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3($elm$core$String$slice, 0, -n, string);
+	});
+var $elm_community$list_extra$List$Extra$dropWhile = F2(
+	function (predicate, list) {
+		dropWhile:
 		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
+			if (!list.b) {
+				return _List_Nil;
 			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
+				var x = list.a;
+				var xs = list.b;
+				if (predicate(x)) {
+					var $temp$predicate = predicate,
+						$temp$list = xs;
+					predicate = $temp$predicate;
+					list = $temp$list;
+					continue dropWhile;
+				} else {
+					return list;
 				}
 			}
 		}
 	});
-var $elm$core$Dict$getMin = function (dict) {
-	getMin:
-	while (true) {
-		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
-			var left = dict.d;
-			var $temp$dict = left;
-			dict = $temp$dict;
-			continue getMin;
-		} else {
-			return dict;
-		}
-	}
-};
-var $elm$core$Dict$moveRedLeft = function (dict) {
-	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
-		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _v1 = dict.d;
-			var lClr = _v1.a;
-			var lK = _v1.b;
-			var lV = _v1.c;
-			var lLeft = _v1.d;
-			var lRight = _v1.e;
-			var _v2 = dict.e;
-			var rClr = _v2.a;
-			var rK = _v2.b;
-			var rV = _v2.c;
-			var rLeft = _v2.d;
-			var _v3 = rLeft.a;
-			var rlK = rLeft.b;
-			var rlV = rLeft.c;
-			var rlL = rLeft.d;
-			var rlR = rLeft.e;
-			var rRight = _v2.e;
-			return A5(
-				$elm$core$Dict$RBNode_elm_builtin,
-				$elm$core$Dict$Red,
-				rlK,
-				rlV,
-				A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Black,
-					k,
-					v,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					rlL),
-				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rlR, rRight));
-		} else {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _v4 = dict.d;
-			var lClr = _v4.a;
-			var lK = _v4.b;
-			var lV = _v4.c;
-			var lLeft = _v4.d;
-			var lRight = _v4.e;
-			var _v5 = dict.e;
-			var rClr = _v5.a;
-			var rK = _v5.b;
-			var rV = _v5.c;
-			var rLeft = _v5.d;
-			var rRight = _v5.e;
-			if (clr.$ === 'Black') {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Black,
-					k,
-					v,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Black,
-					k,
-					v,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			}
-		}
+var $elm$core$String$indexes = _String_indexes;
+var $elm_community$string_extra$String$Extra$rightOfBack = F2(
+	function (pattern, string) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			'',
+			A2(
+				$elm$core$Maybe$map,
+				A2(
+					$elm$core$Basics$composeR,
+					$elm$core$Basics$add(
+						$elm$core$String$length(pattern)),
+					function (a) {
+						return A2($elm$core$String$dropLeft, a, string);
+					}),
+				$elm$core$List$head(
+					$elm$core$List$reverse(
+						A2($elm$core$String$indexes, pattern, string)))));
+	});
+var $thomasin$elm_path$Path$ext = function (_v0) {
+	var details = _v0.b;
+	var withoutLeadingDots = A2(
+		$elm$core$String$join,
+		'.',
+		A2(
+			$elm_community$list_extra$List$Extra$dropWhile,
+			$elm$core$String$isEmpty,
+			A2($elm$core$String$split, '.', details.name)));
+	var _v1 = A2($elm_community$string_extra$String$Extra$rightOfBack, '.', withoutLeadingDots);
+	if (_v1 === '') {
+		return '';
 	} else {
-		return dict;
+		var str = _v1;
+		return '.' + str;
 	}
 };
-var $elm$core$Dict$moveRedRight = function (dict) {
-	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
-		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _v1 = dict.d;
-			var lClr = _v1.a;
-			var lK = _v1.b;
-			var lV = _v1.c;
-			var _v2 = _v1.d;
-			var _v3 = _v2.a;
-			var llK = _v2.b;
-			var llV = _v2.c;
-			var llLeft = _v2.d;
-			var llRight = _v2.e;
-			var lRight = _v1.e;
-			var _v4 = dict.e;
-			var rClr = _v4.a;
-			var rK = _v4.b;
-			var rV = _v4.c;
-			var rLeft = _v4.d;
-			var rRight = _v4.e;
-			return A5(
-				$elm$core$Dict$RBNode_elm_builtin,
-				$elm$core$Dict$Red,
-				lK,
-				lV,
-				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
-				A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Black,
-					k,
-					v,
-					lRight,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight)));
-		} else {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _v5 = dict.d;
-			var lClr = _v5.a;
-			var lK = _v5.b;
-			var lV = _v5.c;
-			var lLeft = _v5.d;
-			var lRight = _v5.e;
-			var _v6 = dict.e;
-			var rClr = _v6.a;
-			var rK = _v6.b;
-			var rV = _v6.c;
-			var rLeft = _v6.d;
-			var rRight = _v6.e;
-			if (clr.$ === 'Black') {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Black,
-					k,
-					v,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Black,
-					k,
-					v,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			}
-		}
-	} else {
-		return dict;
-	}
+var $thomasin$elm_path$Path$name = function (path) {
+	var details = path.b;
+	return A2(
+		$elm$core$String$dropRight,
+		$elm$core$String$length(
+			$thomasin$elm_path$Path$ext(path)),
+		details.name);
 };
-var $elm$core$Dict$removeHelpPrepEQGT = F7(
-	function (targetKey, dict, color, key, value, left, right) {
-		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-			var _v1 = left.a;
-			var lK = left.b;
-			var lV = left.c;
-			var lLeft = left.d;
-			var lRight = left.e;
-			return A5(
-				$elm$core$Dict$RBNode_elm_builtin,
-				color,
-				lK,
-				lV,
-				lLeft,
-				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, lRight, right));
-		} else {
-			_v2$2:
-			while (true) {
-				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
-					if (right.d.$ === 'RBNode_elm_builtin') {
-						if (right.d.a.$ === 'Black') {
-							var _v3 = right.a;
-							var _v4 = right.d;
-							var _v5 = _v4.a;
-							return $elm$core$Dict$moveRedRight(dict);
-						} else {
-							break _v2$2;
-						}
-					} else {
-						var _v6 = right.a;
-						var _v7 = right.d;
-						return $elm$core$Dict$moveRedRight(dict);
-					}
-				} else {
-					break _v2$2;
-				}
-			}
-			return dict;
-		}
-	});
-var $elm$core$Dict$removeMin = function (dict) {
-	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
-		var color = dict.a;
-		var key = dict.b;
-		var value = dict.c;
-		var left = dict.d;
-		var lColor = left.a;
-		var lLeft = left.d;
-		var right = dict.e;
-		if (lColor.$ === 'Black') {
-			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
-				var _v3 = lLeft.a;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					color,
-					key,
-					value,
-					$elm$core$Dict$removeMin(left),
-					right);
-			} else {
-				var _v4 = $elm$core$Dict$moveRedLeft(dict);
-				if (_v4.$ === 'RBNode_elm_builtin') {
-					var nColor = _v4.a;
-					var nKey = _v4.b;
-					var nValue = _v4.c;
-					var nLeft = _v4.d;
-					var nRight = _v4.e;
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						$elm$core$Dict$removeMin(nLeft),
-						nRight);
-				} else {
-					return $elm$core$Dict$RBEmpty_elm_builtin;
-				}
-			}
-		} else {
-			return A5(
-				$elm$core$Dict$RBNode_elm_builtin,
-				color,
-				key,
-				value,
-				$elm$core$Dict$removeMin(left),
-				right);
-		}
-	} else {
-		return $elm$core$Dict$RBEmpty_elm_builtin;
-	}
+var $thomasin$elm_path$Path$platform = function (_v0) {
+	var platform_ = _v0.a;
+	return platform_;
 };
-var $elm$core$Dict$removeHelp = F2(
-	function (targetKey, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return $elm$core$Dict$RBEmpty_elm_builtin;
-		} else {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			if (_Utils_cmp(targetKey, key) < 0) {
-				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
-					var _v4 = left.a;
-					var lLeft = left.d;
-					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
-						var _v6 = lLeft.a;
-						return A5(
-							$elm$core$Dict$RBNode_elm_builtin,
-							color,
-							key,
-							value,
-							A2($elm$core$Dict$removeHelp, targetKey, left),
-							right);
-					} else {
-						var _v7 = $elm$core$Dict$moveRedLeft(dict);
-						if (_v7.$ === 'RBNode_elm_builtin') {
-							var nColor = _v7.a;
-							var nKey = _v7.b;
-							var nValue = _v7.c;
-							var nLeft = _v7.d;
-							var nRight = _v7.e;
-							return A5(
-								$elm$core$Dict$balance,
-								nColor,
-								nKey,
-								nValue,
-								A2($elm$core$Dict$removeHelp, targetKey, nLeft),
-								nRight);
-						} else {
-							return $elm$core$Dict$RBEmpty_elm_builtin;
-						}
-					}
-				} else {
-					return A5(
-						$elm$core$Dict$RBNode_elm_builtin,
-						color,
-						key,
-						value,
-						A2($elm$core$Dict$removeHelp, targetKey, left),
-						right);
-				}
-			} else {
-				return A2(
-					$elm$core$Dict$removeHelpEQGT,
-					targetKey,
-					A7($elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
-			}
-		}
-	});
-var $elm$core$Dict$removeHelpEQGT = F2(
-	function (targetKey, dict) {
-		if (dict.$ === 'RBNode_elm_builtin') {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			if (_Utils_eq(targetKey, key)) {
-				var _v1 = $elm$core$Dict$getMin(right);
-				if (_v1.$ === 'RBNode_elm_builtin') {
-					var minKey = _v1.b;
-					var minValue = _v1.c;
-					return A5(
-						$elm$core$Dict$balance,
-						color,
-						minKey,
-						minValue,
-						left,
-						$elm$core$Dict$removeMin(right));
-				} else {
-					return $elm$core$Dict$RBEmpty_elm_builtin;
-				}
-			} else {
-				return A5(
-					$elm$core$Dict$balance,
-					color,
-					key,
-					value,
-					left,
-					A2($elm$core$Dict$removeHelp, targetKey, right));
-			}
-		} else {
-			return $elm$core$Dict$RBEmpty_elm_builtin;
-		}
-	});
-var $elm$core$Dict$remove = F2(
-	function (key, dict) {
-		var _v0 = A2($elm$core$Dict$removeHelp, key, dict);
-		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
-			var _v1 = _v0.a;
-			var k = _v0.b;
-			var v = _v0.c;
-			var l = _v0.d;
-			var r = _v0.e;
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _v0;
-			return x;
-		}
-	});
-var $elm$core$Dict$update = F3(
-	function (targetKey, alter, dictionary) {
-		var _v0 = alter(
-			A2($elm$core$Dict$get, targetKey, dictionary));
-		if (_v0.$ === 'Just') {
-			var value = _v0.a;
-			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
-		} else {
-			return A2($elm$core$Dict$remove, targetKey, dictionary);
-		}
-	});
-var $author$project$Modules$newFunction = F3(
-	function (_function, inputDetails, modules) {
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
 		return A3(
-			$elm$core$Dict$update,
-			_function.moduleDir,
-			function (maybeExistingDetails) {
-				if (maybeExistingDetails.$ === 'Just') {
-					var existingDetails = maybeExistingDetails.a;
-					return $elm$core$Maybe$Just(
-						A3(
-							$elm$core$Dict$insert,
-							_function.name,
-							{inputFile: inputDetails, type_: _function.type_},
-							existingDetails));
-				} else {
-					return $elm$core$Maybe$Just(
-						A2(
-							$elm$core$Dict$singleton,
-							_function.name,
-							{inputFile: inputDetails, type_: _function.type_}));
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $thomasin$elm_path$Path$Posix$separator = $elm$core$String$fromChar($thomasin$elm_path$Path$Internal$posixSeparator);
+var $thomasin$elm_path$Path$Platform$separator = function (platform) {
+	if (platform.$ === 'Win32') {
+		return $thomasin$elm_path$Path$Win32$separator;
+	} else {
+		return $thomasin$elm_path$Path$Posix$separator;
+	}
+};
+var $thomasin$elm_path$Path$toList = function (_v0) {
+	var platform_ = _v0.a;
+	var details = _v0.b;
+	var _v1 = details.root;
+	if (_v1.$ === 'Just') {
+		var root = _v1.a;
+		return A2(
+			$elm$core$List$filter,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
+			A2(
+				$elm$core$List$cons,
+				root,
+				_Utils_ap(
+					A2(
+						$elm$core$String$split,
+						$thomasin$elm_path$Path$Platform$separator(platform_),
+						details.dir),
+					_List_fromArray(
+						[details.name]))));
+	} else {
+		return A2(
+			$elm$core$List$filter,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty),
+			_Utils_ap(
+				A2(
+					$elm$core$String$split,
+					$thomasin$elm_path$Path$Platform$separator(platform_),
+					details.dir),
+				_List_fromArray(
+					[details.name])));
+	}
+};
+var $thomasin$elm_path$Path$toString = function (_v0) {
+	var platform_ = _v0.a;
+	var details = _v0.b;
+	var dir_ = $elm$core$String$isEmpty(details.dir) ? '' : ($elm$core$String$isEmpty(details.name) ? details.dir : _Utils_ap(
+		details.dir,
+		$thomasin$elm_path$Path$Platform$separator(platform_)));
+	var _v1 = details.root;
+	if (_v1.$ === 'Just') {
+		var root = _v1.a;
+		return _Utils_ap(
+			root,
+			_Utils_ap(dir_, details.name));
+	} else {
+		return _Utils_ap(dir_, details.name);
+	}
+};
+var $author$project$Content$Function$fromPath = function (filePath) {
+	var continuePath = function (pieces) {
+		if (!pieces.b) {
+			return $elm$core$Result$Err($author$project$Content$Function$PathIsEmpty);
+		} else {
+			if (!pieces.b.b) {
+				var file = pieces.a;
+				switch (file.$) {
+					case 'Hidden':
+						return $elm$core$Result$Err($author$project$Content$Function$PathIsHidden);
+					case 'Bracketed':
+						if (file.a === 'Content') {
+							return $elm$core$Result$Err(
+								$author$project$Content$Function$PathIsInvalid('Invalid [content].* file'));
+						} else {
+							var fileName = file.a;
+							return $elm$core$Result$Ok(
+								{
+									_function: $elm$core$Maybe$Just(
+										_Utils_Tuple2(
+											$author$project$Content$Function$CollectionItemFunction,
+											$elm_community$string_extra$String$Extra$decapitalize(fileName))),
+									moduleDir: _List_Nil
+								});
+						}
+					default:
+						if (file.a === 'Content') {
+							return $elm$core$Result$Ok(
+								{_function: $elm$core$Maybe$Nothing, moduleDir: _List_Nil});
+						} else {
+							var fileName = file.a;
+							return $elm$core$Result$Ok(
+								{
+									_function: $elm$core$Maybe$Just(
+										_Utils_Tuple2($author$project$Content$Function$SingletonFunction, 'content')),
+									moduleDir: _List_fromArray(
+										[fileName])
+								});
+						}
 				}
-			},
-			modules);
-	});
-var $author$project$Ports$performEffect = _Platform_outgoingPort(
-	'performEffect',
-	function ($) {
-		return $elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'actions',
-					$elm$json$Json$Encode$list(
-						function ($) {
-							return $elm$json$Json$Encode$object(
-								_List_fromArray(
-									[
-										_Utils_Tuple2(
-										'args',
-										$elm$core$Basics$identity($.args)),
-										_Utils_Tuple2(
-										'with',
-										$elm$json$Json$Encode$string($._with))
-									]));
-						})($.actions)),
-					_Utils_Tuple2(
-					'filePath',
-					$elm$json$Json$Encode$string($.filePath))
-				]));
-	});
-var $elm$core$Set$remove = F2(
-	function (key, _v0) {
-		var dict = _v0.a;
-		return $elm$core$Set$Set_elm_builtin(
-			A2($elm$core$Dict$remove, key, dict));
-	});
-var $author$project$Content$Output$sequence = function (outputs) {
-	var check = F3(
-		function (outputs_, messages, items) {
-			check:
-			while (true) {
-				if (!outputs_.b) {
-					return A2($author$project$Content$Output$Continue, messages, items);
-				} else {
-					var o = outputs_.a;
-					var os = outputs_.b;
-					switch (o.$) {
-						case 'Continue':
-							var messages_ = o.a;
-							var item = o.b;
-							var $temp$outputs_ = os,
-								$temp$messages = A2($elm$core$List$append, messages_, messages),
-								$temp$items = A2($elm$core$List$cons, item, items);
-							outputs_ = $temp$outputs_;
-							messages = $temp$messages;
-							items = $temp$items;
-							continue check;
-						case 'Ignore':
-							var messages_ = o.a;
-							var $temp$outputs_ = os,
-								$temp$messages = A2($elm$core$List$append, messages_, messages),
-								$temp$items = items;
-							outputs_ = $temp$outputs_;
-							messages = $temp$messages;
-							items = $temp$items;
-							continue check;
-						default:
-							var message = o.a;
-							return $author$project$Content$Output$Terminate(message);
-					}
+			} else {
+				var folder = pieces.a;
+				var restPath = pieces.b;
+				var fillInModuleDir = F2(
+					function (moduleName, details) {
+						return _Utils_update(
+							details,
+							{
+								moduleDir: A2($elm$core$List$cons, moduleName, details.moduleDir)
+							});
+					});
+				var fillInFunction = F2(
+					function (_function, details) {
+						var _v3 = details._function;
+						if (_v3.$ === 'Just') {
+							return details;
+						} else {
+							return _Utils_update(
+								details,
+								{
+									_function: $elm$core$Maybe$Just(_function)
+								});
+						}
+					});
+				switch (folder.$) {
+					case 'Hidden':
+						return $elm$core$Result$Err($author$project$Content$Function$PathIsHidden);
+					case 'Bracketed':
+						if (folder.a === 'Content') {
+							return $elm$core$Result$Err(
+								$author$project$Content$Function$PathIsInvalid('Invalid [content] folder'));
+						} else {
+							var folderName = folder.a;
+							return A2(
+								$elm$core$Result$map,
+								fillInFunction(
+									_Utils_Tuple2(
+										$author$project$Content$Function$CollectionItemFunction,
+										$elm_community$string_extra$String$Extra$decapitalize(folderName))),
+								continuePath(restPath));
+						}
+					default:
+						if (folder.a === 'Content') {
+							return $elm$core$Result$Err(
+								$author$project$Content$Function$PathIsInvalid('Invalid content folder'));
+						} else {
+							var folderName = folder.a;
+							return A2(
+								$elm$core$Result$map,
+								fillInFunction(
+									_Utils_Tuple2($author$project$Content$Function$SingletonFunction, 'content')),
+								A2(
+									$elm$core$Result$map,
+									fillInModuleDir(
+										$elm_community$string_extra$String$Extra$classify(folderName)),
+									continuePath(restPath)));
+						}
 				}
 			}
-		});
-	return A3(check, outputs, _List_Nil, _List_Nil);
+		}
+	};
+	var cleanFilePiece = function (fullPiece) {
+		var _v8 = A2(
+			$thomasin$elm_path$Path$fromString,
+			$thomasin$elm_path$Path$platform(filePath),
+			fullPiece);
+		if (_v8.$ === 'Ok') {
+			var piecePath = _v8.a;
+			return A2(
+				$elm$core$String$startsWith,
+				'.',
+				$thomasin$elm_path$Path$name(piecePath)) ? $elm$core$Result$Ok($author$project$Content$Internal$Hidden) : ((A2(
+				$elm$core$String$startsWith,
+				'[',
+				$thomasin$elm_path$Path$name(piecePath)) && A2(
+				$elm$core$String$endsWith,
+				']',
+				$thomasin$elm_path$Path$name(piecePath))) ? $elm$core$Result$Ok(
+				$author$project$Content$Internal$Bracketed(
+					$elm_community$string_extra$String$Extra$classify(
+						$thomasin$elm_path$Path$name(piecePath)))) : $elm$core$Result$Ok(
+				$author$project$Content$Internal$Normal(
+					$elm_community$string_extra$String$Extra$classify(
+						$thomasin$elm_path$Path$name(piecePath)))));
+		} else {
+			var err = _v8.a;
+			return $elm$core$Result$Err(
+				$author$project$Content$Function$PathIsInvalid(err));
+		}
+	};
+	var _v4 = A2(
+		$elm$core$Result$andThen,
+		continuePath,
+		$elm_community$result_extra$Result$Extra$combine(
+			A2(
+				$elm$core$List$map,
+				cleanFilePiece,
+				$thomasin$elm_path$Path$toList(filePath))));
+	if (_v4.$ === 'Ok') {
+		var details = _v4.a;
+		var _v5 = details._function;
+		if (_v5.$ === 'Nothing') {
+			return $elm$core$Result$Err(
+				$author$project$Content$Function$PathIsInvalid('Invalid top-level content.* file'));
+		} else {
+			var _v6 = _v5.a;
+			var functionType = _v6.a;
+			var functionName = _v6.b;
+			var _v7 = details.moduleDir;
+			if (!_v7.b) {
+				return $elm$core$Result$Err(
+					$author$project$Content$Function$PathIsInvalid(
+						'Invalid top-level [*].* file: ' + $thomasin$elm_path$Path$toString(filePath)));
+			} else {
+				return $elm$core$Result$Ok(
+					{
+						moduleDir: A2($elm$core$List$cons, 'Content', details.moduleDir),
+						name: functionName,
+						type_: functionType
+					});
+			}
+		}
+	} else {
+		var err = _v4.a;
+		return $elm$core$Result$Err(err);
+	}
 };
-var $author$project$Ports$show = _Platform_outgoingPort(
-	'show',
-	$elm$json$Json$Encode$list(
-		function ($) {
-			return $elm$json$Json$Encode$object(
-				_List_fromArray(
-					[
-						_Utils_Tuple2(
-						'level',
-						$elm$json$Json$Encode$string($.level)),
-						_Utils_Tuple2(
-						'message',
-						$elm$json$Json$Encode$string($.message))
-					]));
-		}));
-var $author$project$Ports$terminate = _Platform_outgoingPort('terminate', $elm$json$Json$Encode$string);
-var $author$project$Content$Output$Success = function (a) {
-	return {$: 'Success', a: a};
+var $author$project$Output$Continue = F2(
+	function (a, b) {
+		return {$: 'Continue', a: a, b: b};
+	});
+var $author$project$Output$Ignore = function (a) {
+	return {$: 'Ignore', a: a};
 };
+var $author$project$Output$Info = function (a) {
+	return {$: 'Info', a: a};
+};
+var $author$project$Output$Terminate = function (a) {
+	return {$: 'Terminate', a: a};
+};
+var $author$project$Main$functionPathResultToOutput = function (functionOutput) {
+	if (functionOutput.$ === 'Ok') {
+		var _function = functionOutput.a;
+		return A2($author$project$Output$Continue, _List_Nil, _function);
+	} else {
+		switch (functionOutput.a.$) {
+			case 'PathIsHidden':
+				var _v1 = functionOutput.a;
+				return $author$project$Output$Ignore(
+					_List_fromArray(
+						[
+							$author$project$Output$Info('Ignoring hidden file')
+						]));
+			case 'PathIsEmpty':
+				var _v2 = functionOutput.a;
+				return $author$project$Output$Ignore(_List_Nil);
+			default:
+				var message = functionOutput.a.a;
+				return $author$project$Output$Terminate(message);
+		}
+	}
+};
+var $author$project$Content$Decode$Internal$Declaration = function (a) {
+	return {$: 'Declaration', a: a};
+};
+var $author$project$Content$Module$DecoderError = function (a) {
+	return {$: 'DecoderError', a: a};
+};
+var $author$project$Content$Module$IgnoredTypePath = {$: 'IgnoredTypePath'};
+var $author$project$Content$Module$InvalidOutputPath = {$: 'InvalidOutputPath'};
+var $author$project$Content$Module$NoMatchingDecoder = {$: 'NoMatchingDecoder'};
 var $author$project$Content$Write$Writer = function (a) {
 	return {$: 'Writer', a: a};
+};
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
 var $author$project$Content$Write$concat = function (writers) {
 	var writer = function (_v2) {
@@ -6429,7 +4953,13 @@ var $author$project$Content$Write$concat = function (writers) {
 					writers))
 		});
 };
-var $author$project$Content$Type$fromFunctionType = F2(
+var $author$project$Content$Type$Multiple = function (a) {
+	return {$: 'Multiple', a: a};
+};
+var $author$project$Content$Type$Single = function (a) {
+	return {$: 'Single', a: a};
+};
+var $author$project$Content$Type$Internal$fromFunctionType = F2(
 	function (functionType, moduleDir) {
 		if (functionType.$ === 'SingletonFunction') {
 			return $author$project$Content$Type$Single(
@@ -6439,30 +4969,28 @@ var $author$project$Content$Type$fromFunctionType = F2(
 				A2($elm$core$String$join, '.', moduleDir));
 		}
 	});
-var $author$project$Content$Output$map = F2(
-	function (func, output) {
-		switch (output.$) {
-			case 'Continue':
-				var messages = output.a;
-				var a = output.b;
-				return A2(
-					$author$project$Content$Output$Continue,
-					messages,
-					func(a));
-			case 'Ignore':
-				var messages = output.a;
-				return $author$project$Content$Output$Ignore(messages);
-			default:
-				var str = output.a;
-				return $author$project$Content$Output$Terminate(str);
-		}
-	});
 var $stil4m$elm_syntax$Elm$Syntax$Declaration$FunctionDeclaration = function (a) {
 	return {$: 'FunctionDeclaration', a: a};
 };
 var $stil4m$elm_syntax$Elm$Syntax$Exposing$FunctionExpose = function (a) {
 	return {$: 'FunctionExpose', a: a};
 };
+var $stil4m$elm_syntax$Elm$Syntax$Expression$RecordExpr = function (a) {
+	return {$: 'RecordExpr', a: a};
+};
+var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed = F2(
+	function (a, b) {
+		return {$: 'Typed', a: a, b: b};
+	});
+var $stil4m$elm_syntax$Elm$Syntax$Node$Node = F2(
+	function (a, b) {
+		return {$: 'Node', a: a, b: b};
+	});
+var $stil4m$elm_syntax$Elm$Syntax$Range$emptyRange = {
+	end: {column: 0, row: 0},
+	start: {column: 0, row: 0}
+};
+var $author$project$Content$Internal$node = $stil4m$elm_syntax$Elm$Syntax$Node$Node($stil4m$elm_syntax$Elm$Syntax$Range$emptyRange);
 var $author$project$Content$Write$toFunctionDeclaration = F6(
 	function (functionName, functionType, inputPath, rawContent, documentation, _v0) {
 		var frontmatterDecoder = _v0.a;
@@ -6523,6 +5051,9 @@ var $author$project$Content$Write$toFunctionDeclaration = F6(
 var $stil4m$elm_syntax$Elm$Syntax$Declaration$AliasDeclaration = function (a) {
 	return {$: 'AliasDeclaration', a: a};
 };
+var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Record = function (a) {
+	return {$: 'Record', a: a};
+};
 var $stil4m$elm_syntax$Elm$Syntax$Exposing$TypeOrAliasExpose = function (a) {
 	return {$: 'TypeOrAliasExpose', a: a};
 };
@@ -6543,14 +5074,14 @@ var $author$project$Content$Write$toTypeDeclaration = F2(
 	});
 var $author$project$Content$Write$record = function (args) {
 	var functionType = $elm_community$string_extra$String$Extra$classify(args.functionType);
-	var typeDeclaration = A2($author$project$Content$Write$toTypeDeclaration, functionType, args.decoder);
 	var functionName = $elm_community$string_extra$String$Extra$decapitalize(
 		$elm_community$string_extra$String$Extra$camelize(args.functionName));
 	var functionDeclarationResult = A6($author$project$Content$Write$toFunctionDeclaration, functionName, functionType, args.inputFilePath, args.frontmatter, args.documentation, args.decoder);
-	var _v0 = args.decoder;
-	var frontmatterDecoder = _v0.a;
 	if (functionDeclarationResult.$ === 'Ok') {
 		var functionDeclaration = functionDeclarationResult.a;
+		var typeDeclaration = A2($author$project$Content$Write$toTypeDeclaration, functionType, args.decoder);
+		var _v1 = args.decoder;
+		var frontmatterDecoder = _v1.a;
 		return $elm$core$Result$Ok(
 			$author$project$Content$Write$Writer(
 				{
@@ -6581,6 +5112,73 @@ var $elm_community$basics_extra$Basics$Extra$uncurry = F2(
 		var b = _v0.b;
 		return A2(f, a, b);
 	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $elm_community$list_extra$List$Extra$uniqueHelp = F4(
+	function (f, existing, remaining, accumulator) {
+		uniqueHelp:
+		while (true) {
+			if (!remaining.b) {
+				return $elm$core$List$reverse(accumulator);
+			} else {
+				var first = remaining.a;
+				var rest = remaining.b;
+				var computedFirst = f(first);
+				if (A2($elm$core$List$member, computedFirst, existing)) {
+					var $temp$f = f,
+						$temp$existing = existing,
+						$temp$remaining = rest,
+						$temp$accumulator = accumulator;
+					f = $temp$f;
+					existing = $temp$existing;
+					remaining = $temp$remaining;
+					accumulator = $temp$accumulator;
+					continue uniqueHelp;
+				} else {
+					var $temp$f = f,
+						$temp$existing = A2($elm$core$List$cons, computedFirst, existing),
+						$temp$remaining = rest,
+						$temp$accumulator = A2($elm$core$List$cons, first, accumulator);
+					f = $temp$f;
+					existing = $temp$existing;
+					remaining = $temp$remaining;
+					accumulator = $temp$accumulator;
+					continue uniqueHelp;
+				}
+			}
+		}
+	});
+var $elm_community$list_extra$List$Extra$unique = function (list) {
+	return A4($elm_community$list_extra$List$Extra$uniqueHelp, $elm$core$Basics$identity, _List_Nil, list, _List_Nil);
+};
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Bitwise$shiftRightBy = _Bitwise_shiftRightBy;
 var $elm$core$String$repeatHelp = F3(
@@ -7531,6 +6129,33 @@ var $stil4m$elm_syntax$Elm$Writer$writePortDeclaration = function (signature) {
 			]));
 };
 var $stil4m$structured_writer$StructuredWriter$sepBy = $stil4m$structured_writer$StructuredWriter$Sep;
+var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Tupled = function (a) {
+	return {$: 'Tupled', a: a};
+};
+var $stil4m$elm_syntax$Elm$Writer$wrapInSurroundingParentheses = function (node) {
+	var withParens = function (n) {
+		return A2(
+			$stil4m$elm_syntax$Elm$Syntax$Node$Node,
+			$stil4m$elm_syntax$Elm$Syntax$Range$emptyRange,
+			$stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Tupled(
+				_List_fromArray(
+					[n])));
+	};
+	var _v0 = $stil4m$elm_syntax$Elm$Syntax$Node$value(node);
+	switch (_v0.$) {
+		case 'FunctionTypeAnnotation':
+			return withParens(node);
+		case 'Typed':
+			var typeParameters = _v0.b;
+			if (!typeParameters.b) {
+				return node;
+			} else {
+				return withParens(node);
+			}
+		default:
+			return node;
+	}
+};
 var $stil4m$elm_syntax$Elm$Writer$writeValueConstructor = function (_v0) {
 	var name = _v0.name;
 	var _arguments = _v0._arguments;
@@ -7540,7 +6165,10 @@ var $stil4m$elm_syntax$Elm$Writer$writeValueConstructor = function (_v0) {
 				$stil4m$structured_writer$StructuredWriter$string(
 				$stil4m$elm_syntax$Elm$Syntax$Node$value(name)),
 				$stil4m$structured_writer$StructuredWriter$spaced(
-				A2($elm$core$List$map, $stil4m$elm_syntax$Elm$Writer$writeTypeAnnotation, _arguments))
+				A2(
+					$elm$core$List$map,
+					A2($elm$core$Basics$composeR, $stil4m$elm_syntax$Elm$Writer$wrapInSurroundingParentheses, $stil4m$elm_syntax$Elm$Writer$writeTypeAnnotation),
+					_arguments))
 			]));
 };
 var $stil4m$elm_syntax$Elm$Writer$writeType = function (type_) {
@@ -7838,95 +6466,684 @@ var $author$project$Content$Write$toFileString = F2(
 							}))
 				}));
 	});
-var $author$project$Content$Type$toString = function (path) {
+var $author$project$Content$Type$Internal$toTypeName = function (path) {
 	if (path.$ === 'Single') {
-		var modules = path.a;
-		return modules + '.Content';
+		return 'Content';
 	} else {
-		var modules = path.a;
-		return modules + '.ListItem';
+		return 'CollectionItem';
 	}
 };
-var $author$project$Content$Decode$File$toFile = F2(
-	function (declarationGenerator, outputModule) {
+var $author$project$Content$Module$generate = F3(
+	function (platform, declarationGenerator, outputModule) {
 		var toDeclarations = function (functions) {
 			return A2(
-				$author$project$Content$Output$map,
+				$elm$core$Result$map,
 				$author$project$Content$Write$concat,
-				$author$project$Content$Output$sequence(
+				$elm_community$result_extra$Result$Extra$combine(
 					A2(
 						$elm$core$List$map,
-						function (_v1) {
-							var functionName = _v1.a;
-							var functionDetails = _v1.b;
-							var typePath = A2($author$project$Content$Type$fromFunctionType, functionDetails.type_, outputModule.dir);
-							var _v2 = declarationGenerator(typePath);
-							if (_v2.$ === 'Found') {
-								var frontmatterDecoder = _v2.a.a;
-								var writerResult = $author$project$Content$Write$record(
-									{
-										decoder: $author$project$Content$Decode$Internal$Declaration(frontmatterDecoder),
-										documentation: $elm$core$Maybe$Just(
-											'{-| Auto-generated from file ' + ($author$project$Path$toString(functionDetails.inputFile.filePath) + '-}')),
-										frontmatter: functionDetails.inputFile.fileFrontmatter,
-										functionName: functionName,
-										functionType: $author$project$Content$Type$toTypeName(typePath),
-										inputFilePath: functionDetails.inputFile.filePath
-									});
-								if (writerResult.$ === 'Ok') {
-									var writer = writerResult.a;
-									return A2(
-										$author$project$Content$Output$Continue,
-										_List_fromArray(
-											[
-												$author$project$Content$Output$Success(
-												'✨ Successfully decoded ' + $author$project$Content$Type$toString(typePath))
-											]),
-										writer);
-								} else {
-									var decodeError = writerResult.a;
-									return $author$project$Content$Output$Terminate(
-										$elm$json$Json$Decode$errorToString(decodeError));
-								}
+						function (_v2) {
+							var functionName = _v2.a;
+							var functionDetails = _v2.b;
+							var typePath = A2($author$project$Content$Type$Internal$fromFunctionType, functionDetails.type_, outputModule.dir);
+							var _v3 = declarationGenerator(typePath);
+							if (_v3.$ === 'Found') {
+								var frontmatterDecoder = _v3.a.a;
+								return A2(
+									$elm$core$Result$mapError,
+									$author$project$Content$Module$DecoderError,
+									$author$project$Content$Write$record(
+										{
+											decoder: $author$project$Content$Decode$Internal$Declaration(frontmatterDecoder),
+											documentation: $elm$core$Maybe$Just(
+												'{-| Auto-generated from file ' + ($thomasin$elm_path$Path$toString(functionDetails.inputFilePath) + '-}')),
+											frontmatter: functionDetails.frontmatter,
+											functionName: functionName,
+											functionType: $author$project$Content$Type$Internal$toTypeName(typePath),
+											inputFilePath: functionDetails.inputFilePath
+										}));
 							} else {
-								var _throw = _v2.a._throw;
-								return _throw ? $author$project$Content$Output$Terminate(
-									'Couldn\'t find matching decoder for ' + $author$project$Content$Type$toString(typePath)) : $author$project$Content$Output$Ignore(
-									_List_fromArray(
-										[
-											$author$project$Content$Output$Info(
-											'🌥  Ignoring ' + $author$project$Content$Type$toString(typePath))
-										]));
+								var _throw = _v3.a._throw;
+								return _throw ? $elm$core$Result$Err($author$project$Content$Module$NoMatchingDecoder) : $elm$core$Result$Err($author$project$Content$Module$IgnoredTypePath);
 							}
 						},
 						functions)));
 		};
 		var _v0 = toDeclarations(
 			$elm$core$Dict$toList(outputModule.functions));
-		switch (_v0.$) {
-			case 'Continue':
-				var messages = _v0.a;
-				var decoded = _v0.b.a;
-				return A2(
-					$author$project$Content$Output$Continue,
-					messages,
+		if (_v0.$ === 'Ok') {
+			var decoded = _v0.a.a;
+			var _v1 = A2(
+				$thomasin$elm_path$Path$fromString,
+				platform,
+				A2($elm$core$String$join, '/', outputModule.dir) + '.elm');
+			if (_v1.$ === 'Ok') {
+				var outputPath = _v1.a;
+				return $elm$core$Result$Ok(
 					{
 						actions: decoded.actions,
-						fileContents: A2(
+						contents: A2(
 							$author$project$Content$Write$toFileString,
 							outputModule.dir,
 							$author$project$Content$Write$Writer(decoded)),
-						filePath: A2($elm$core$String$join, '/', outputModule.dir) + '.elm'
+						path: outputPath
 					});
-			case 'Ignore':
-				var messages = _v0.a;
-				return $author$project$Content$Output$Ignore(messages);
-			default:
-				var message = _v0.a;
-				return $author$project$Content$Output$Terminate(
-					'An error occured while decoding ' + (A2($elm$core$String$join, '.', outputModule.dir) + (': ' + message)));
+			} else {
+				return $elm$core$Result$Err($author$project$Content$Module$InvalidOutputPath);
+			}
+		} else {
+			var err = _v0.a;
+			return $elm$core$Result$Err(err);
 		}
 	});
+var $elm$core$Dict$isEmpty = function (dict) {
+	if (dict.$ === 'RBEmpty_elm_builtin') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Set$isEmpty = function (_v0) {
+	var dict = _v0.a;
+	return $elm$core$Dict$isEmpty(dict);
+};
+var $author$project$Output$Success = function (a) {
+	return {$: 'Success', a: a};
+};
+var $author$project$Main$moduleGenerationToOutput = function (generationOutput) {
+	if (generationOutput.$ === 'Ok') {
+		var generatedModule = generationOutput.a;
+		return A2(
+			$author$project$Output$Continue,
+			_List_fromArray(
+				[
+					$author$project$Output$Success('yay')
+				]),
+			generatedModule);
+	} else {
+		switch (generationOutput.a.$) {
+			case 'NoMatchingDecoder':
+				var _v1 = generationOutput.a;
+				return $author$project$Output$Terminate('No decoder found');
+			case 'IgnoredTypePath':
+				var _v2 = generationOutput.a;
+				return $author$project$Output$Ignore(
+					_List_fromArray(
+						[
+							$author$project$Output$Info('Ignoring')
+						]));
+			case 'InvalidOutputPath':
+				var _v3 = generationOutput.a;
+				return $author$project$Output$Ignore(
+					_List_fromArray(
+						[
+							$author$project$Output$Info('Ignoring')
+						]));
+			default:
+				var error = generationOutput.a.a;
+				return $author$project$Output$Terminate(
+					'Error decoding FILENAME:' + $elm$json$Json$Decode$errorToString(error));
+		}
+	}
+};
+var $author$project$Modules$modulesToList = function (filesDict) {
+	return A2(
+		$elm$core$List$map,
+		function (_v0) {
+			var moduleDir = _v0.a;
+			var functions = _v0.b;
+			return {dir: moduleDir, functions: functions};
+		},
+		$elm$core$Dict$toList(filesDict));
+};
+var $elm$core$Dict$singleton = F2(
+	function (key, value) {
+		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+	});
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
+var $elm$core$Dict$getMin = function (dict) {
+	getMin:
+	while (true) {
+		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+			var left = dict.d;
+			var $temp$dict = left;
+			dict = $temp$dict;
+			continue getMin;
+		} else {
+			return dict;
+		}
+	}
+};
+var $elm$core$Dict$moveRedLeft = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v1 = dict.d;
+			var lClr = _v1.a;
+			var lK = _v1.b;
+			var lV = _v1.c;
+			var lLeft = _v1.d;
+			var lRight = _v1.e;
+			var _v2 = dict.e;
+			var rClr = _v2.a;
+			var rK = _v2.b;
+			var rV = _v2.c;
+			var rLeft = _v2.d;
+			var _v3 = rLeft.a;
+			var rlK = rLeft.b;
+			var rlV = rLeft.c;
+			var rlL = rLeft.d;
+			var rlR = rLeft.e;
+			var rRight = _v2.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				$elm$core$Dict$Red,
+				rlK,
+				rlV,
+				A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					rlL),
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rlR, rRight));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v4 = dict.d;
+			var lClr = _v4.a;
+			var lK = _v4.b;
+			var lV = _v4.c;
+			var lLeft = _v4.d;
+			var lRight = _v4.e;
+			var _v5 = dict.e;
+			var rClr = _v5.a;
+			var rK = _v5.b;
+			var rV = _v5.c;
+			var rLeft = _v5.d;
+			var rRight = _v5.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var $elm$core$Dict$moveRedRight = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v1 = dict.d;
+			var lClr = _v1.a;
+			var lK = _v1.b;
+			var lV = _v1.c;
+			var _v2 = _v1.d;
+			var _v3 = _v2.a;
+			var llK = _v2.b;
+			var llV = _v2.c;
+			var llLeft = _v2.d;
+			var llRight = _v2.e;
+			var lRight = _v1.e;
+			var _v4 = dict.e;
+			var rClr = _v4.a;
+			var rK = _v4.b;
+			var rV = _v4.c;
+			var rLeft = _v4.d;
+			var rRight = _v4.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				$elm$core$Dict$Red,
+				lK,
+				lV,
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
+				A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					lRight,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight)));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v5 = dict.d;
+			var lClr = _v5.a;
+			var lK = _v5.b;
+			var lV = _v5.c;
+			var lLeft = _v5.d;
+			var lRight = _v5.e;
+			var _v6 = dict.e;
+			var rClr = _v6.a;
+			var rK = _v6.b;
+			var rV = _v6.c;
+			var rLeft = _v6.d;
+			var rRight = _v6.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var $elm$core$Dict$removeHelpPrepEQGT = F7(
+	function (targetKey, dict, color, key, value, left, right) {
+		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+			var _v1 = left.a;
+			var lK = left.b;
+			var lV = left.c;
+			var lLeft = left.d;
+			var lRight = left.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				lK,
+				lV,
+				lLeft,
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, lRight, right));
+		} else {
+			_v2$2:
+			while (true) {
+				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
+					if (right.d.$ === 'RBNode_elm_builtin') {
+						if (right.d.a.$ === 'Black') {
+							var _v3 = right.a;
+							var _v4 = right.d;
+							var _v5 = _v4.a;
+							return $elm$core$Dict$moveRedRight(dict);
+						} else {
+							break _v2$2;
+						}
+					} else {
+						var _v6 = right.a;
+						var _v7 = right.d;
+						return $elm$core$Dict$moveRedRight(dict);
+					}
+				} else {
+					break _v2$2;
+				}
+			}
+			return dict;
+		}
+	});
+var $elm$core$Dict$removeMin = function (dict) {
+	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+		var color = dict.a;
+		var key = dict.b;
+		var value = dict.c;
+		var left = dict.d;
+		var lColor = left.a;
+		var lLeft = left.d;
+		var right = dict.e;
+		if (lColor.$ === 'Black') {
+			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+				var _v3 = lLeft.a;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					color,
+					key,
+					value,
+					$elm$core$Dict$removeMin(left),
+					right);
+			} else {
+				var _v4 = $elm$core$Dict$moveRedLeft(dict);
+				if (_v4.$ === 'RBNode_elm_builtin') {
+					var nColor = _v4.a;
+					var nKey = _v4.b;
+					var nValue = _v4.c;
+					var nLeft = _v4.d;
+					var nRight = _v4.e;
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						$elm$core$Dict$removeMin(nLeft),
+						nRight);
+				} else {
+					return $elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			}
+		} else {
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				value,
+				$elm$core$Dict$removeMin(left),
+				right);
+		}
+	} else {
+		return $elm$core$Dict$RBEmpty_elm_builtin;
+	}
+};
+var $elm$core$Dict$removeHelp = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_cmp(targetKey, key) < 0) {
+				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
+					var _v4 = left.a;
+					var lLeft = left.d;
+					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+						var _v6 = lLeft.a;
+						return A5(
+							$elm$core$Dict$RBNode_elm_builtin,
+							color,
+							key,
+							value,
+							A2($elm$core$Dict$removeHelp, targetKey, left),
+							right);
+					} else {
+						var _v7 = $elm$core$Dict$moveRedLeft(dict);
+						if (_v7.$ === 'RBNode_elm_builtin') {
+							var nColor = _v7.a;
+							var nKey = _v7.b;
+							var nValue = _v7.c;
+							var nLeft = _v7.d;
+							var nRight = _v7.e;
+							return A5(
+								$elm$core$Dict$balance,
+								nColor,
+								nKey,
+								nValue,
+								A2($elm$core$Dict$removeHelp, targetKey, nLeft),
+								nRight);
+						} else {
+							return $elm$core$Dict$RBEmpty_elm_builtin;
+						}
+					}
+				} else {
+					return A5(
+						$elm$core$Dict$RBNode_elm_builtin,
+						color,
+						key,
+						value,
+						A2($elm$core$Dict$removeHelp, targetKey, left),
+						right);
+				}
+			} else {
+				return A2(
+					$elm$core$Dict$removeHelpEQGT,
+					targetKey,
+					A7($elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
+			}
+		}
+	});
+var $elm$core$Dict$removeHelpEQGT = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBNode_elm_builtin') {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_eq(targetKey, key)) {
+				var _v1 = $elm$core$Dict$getMin(right);
+				if (_v1.$ === 'RBNode_elm_builtin') {
+					var minKey = _v1.b;
+					var minValue = _v1.c;
+					return A5(
+						$elm$core$Dict$balance,
+						color,
+						minKey,
+						minValue,
+						left,
+						$elm$core$Dict$removeMin(right));
+				} else {
+					return $elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			} else {
+				return A5(
+					$elm$core$Dict$balance,
+					color,
+					key,
+					value,
+					left,
+					A2($elm$core$Dict$removeHelp, targetKey, right));
+			}
+		} else {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		}
+	});
+var $elm$core$Dict$remove = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$removeHelp, key, dict);
+		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
+			var _v1 = _v0.a;
+			var k = _v0.b;
+			var v = _v0.c;
+			var l = _v0.d;
+			var r = _v0.e;
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _v0;
+			return x;
+		}
+	});
+var $elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _v0 = alter(
+			A2($elm$core$Dict$get, targetKey, dictionary));
+		if (_v0.$ === 'Just') {
+			var value = _v0.a;
+			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2($elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var $author$project$Modules$newFunction = F3(
+	function (_function, inputDetails, modules) {
+		return A3(
+			$elm$core$Dict$update,
+			_function.moduleDir,
+			function (maybeExistingDetails) {
+				if (maybeExistingDetails.$ === 'Just') {
+					var existingDetails = maybeExistingDetails.a;
+					return $elm$core$Maybe$Just(
+						A3(
+							$elm$core$Dict$insert,
+							_function.name,
+							{frontmatter: inputDetails.fileFrontmatter, inputFilePath: inputDetails.filePath, type_: _function.type_},
+							existingDetails));
+				} else {
+					return $elm$core$Maybe$Just(
+						A2(
+							$elm$core$Dict$singleton,
+							_function.name,
+							{frontmatter: inputDetails.fileFrontmatter, inputFilePath: inputDetails.filePath, type_: _function.type_}));
+				}
+			},
+			modules);
+	});
+var $elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				$elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Ports$performEffect = _Platform_outgoingPort(
+	'performEffect',
+	function ($) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'actions',
+					$elm$json$Json$Encode$list(
+						function ($) {
+							return $elm$json$Json$Encode$object(
+								_List_fromArray(
+									[
+										_Utils_Tuple2(
+										'args',
+										$elm$core$Basics$identity($.args)),
+										_Utils_Tuple2(
+										'with',
+										$elm$json$Json$Encode$string($._with))
+									]));
+						})($.actions)),
+					_Utils_Tuple2(
+					'filePath',
+					$elm$json$Json$Encode$string($.filePath))
+				]));
+	});
+var $elm$core$Set$remove = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$remove, key, dict));
+	});
+var $author$project$Output$sequence = function (outputs) {
+	var check = F3(
+		function (outputs_, messages, items) {
+			check:
+			while (true) {
+				if (!outputs_.b) {
+					return A2($author$project$Output$Continue, messages, items);
+				} else {
+					var o = outputs_.a;
+					var os = outputs_.b;
+					switch (o.$) {
+						case 'Continue':
+							var messages_ = o.a;
+							var item = o.b;
+							var $temp$outputs_ = os,
+								$temp$messages = A2($elm$core$List$append, messages_, messages),
+								$temp$items = A2($elm$core$List$cons, item, items);
+							outputs_ = $temp$outputs_;
+							messages = $temp$messages;
+							items = $temp$items;
+							continue check;
+						case 'Ignore':
+							var messages_ = o.a;
+							var $temp$outputs_ = os,
+								$temp$messages = A2($elm$core$List$append, messages_, messages),
+								$temp$items = items;
+							outputs_ = $temp$outputs_;
+							messages = $temp$messages;
+							items = $temp$items;
+							continue check;
+						default:
+							var message = o.a;
+							return $author$project$Output$Terminate(message);
+					}
+				}
+			}
+		});
+	return A3(check, outputs, _List_Nil, _List_Nil);
+};
+var $author$project$Ports$show = _Platform_outgoingPort(
+	'show',
+	$elm$json$Json$Encode$list(
+		function ($) {
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'level',
+						$elm$json$Json$Encode$string($.level)),
+						_Utils_Tuple2(
+						'message',
+						$elm$json$Json$Encode$string($.message))
+					]));
+		}));
+var $author$project$Content$Decode$Internal$NotFound = function (a) {
+	return {$: 'NotFound', a: a};
+};
+var $author$project$Content$Decode$ignore = $author$project$Content$Decode$Internal$NotFound(
+	{_throw: false});
+var $author$project$Main$stub = $elm$core$Basics$always($author$project$Content$Decode$ignore);
+var $author$project$Ports$terminate = _Platform_outgoingPort('terminate', $elm$json$Json$Encode$string);
 var $author$project$Ports$writeFiles = _Platform_outgoingPort(
 	'writeFiles',
 	$elm$json$Json$Encode$list(
@@ -7956,10 +7173,13 @@ var $author$project$Main$update = F2(
 					$elm$core$Set$isEmpty(
 						A2($elm$core$Set$remove, filePath, model.fileEffectsPerformed)) ? $author$project$Ports$writeFiles(model.outputFiles) : $elm$core$Platform$Cmd$none);
 			case 'NoMoreInputFiles':
-				var _v1 = $author$project$Content$Output$sequence(
+				var _v1 = $author$project$Output$sequence(
 					A2(
 						$elm$core$List$map,
-						$author$project$Content$Decode$File$toFile($author$project$Content$decoder),
+						A2(
+							$elm$core$Basics$composeL,
+							$author$project$Main$moduleGenerationToOutput,
+							A2($author$project$Content$Module$generate, model.platform, $author$project$Main$stub)),
 						$author$project$Modules$modulesToList(model.modulesContents)));
 				switch (_v1.$) {
 					case 'Continue':
@@ -7972,14 +7192,20 @@ var $author$project$Main$update = F2(
 									fileEffectsPerformed: $elm$core$Set$fromList(
 										A2(
 											$elm$core$List$map,
-											function ($) {
-												return $.filePath;
-											},
+											A2(
+												$elm$core$Basics$composeL,
+												$thomasin$elm_path$Path$toString,
+												function ($) {
+													return $.path;
+												}),
 											allFiles)),
 									outputFiles: A2(
 										$elm$core$List$map,
 										function (file) {
-											return {fileContents: file.fileContents, filePath: file.filePath};
+											return {
+												fileContents: file.contents,
+												filePath: $thomasin$elm_path$Path$toString(file.path)
+											};
 										},
 										allFiles)
 								}),
@@ -7987,13 +7213,16 @@ var $author$project$Main$update = F2(
 								_List_fromArray(
 									[
 										$author$project$Ports$show(
-										$author$project$Content$Output$encodeMessages(messages)),
+										$author$project$Output$encodeMessages(messages)),
 										$elm$core$Platform$Cmd$batch(
 										A2(
 											$elm$core$List$map,
 											function (file) {
 												return $author$project$Ports$performEffect(
-													{actions: file.actions, filePath: file.filePath});
+													{
+														actions: file.actions,
+														filePath: $thomasin$elm_path$Path$toString(file.path)
+													});
 											},
 											allFiles))
 									])));
@@ -8002,7 +7231,7 @@ var $author$project$Main$update = F2(
 						return _Utils_Tuple2(
 							model,
 							$author$project$Ports$show(
-								$author$project$Content$Output$encodeMessages(messages)));
+								$author$project$Output$encodeMessages(messages)));
 					default:
 						var message = _v1.a;
 						return _Utils_Tuple2(
@@ -8011,7 +7240,8 @@ var $author$project$Main$update = F2(
 				}
 			case 'Add':
 				var inputFile = msg.a;
-				var _v2 = $author$project$Content$Function$fromPath(inputFile.filePath);
+				var _v2 = $author$project$Main$functionPathResultToOutput(
+					$author$project$Content$Function$fromPath(inputFile.filePath));
 				switch (_v2.$) {
 					case 'Continue':
 						var messages = _v2.a;
@@ -8023,13 +7253,13 @@ var $author$project$Main$update = F2(
 									modulesContents: A3($author$project$Modules$newFunction, functionDetails, inputFile, model.modulesContents)
 								}),
 							$author$project$Ports$show(
-								$author$project$Content$Output$encodeMessages(messages)));
+								$author$project$Output$encodeMessages(messages)));
 					case 'Ignore':
 						var messages = _v2.a;
 						return _Utils_Tuple2(
 							model,
 							$author$project$Ports$show(
-								$author$project$Content$Output$encodeMessages(messages)));
+								$author$project$Output$encodeMessages(messages)));
 					default:
 						var message = _v2.a;
 						return _Utils_Tuple2(
