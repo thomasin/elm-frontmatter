@@ -26,12 +26,8 @@
     "temp": "^0.9.4"
   },
   "devDependencies": {
-    "elm-format": "*",
     "elm-json": "^0.2.12",
     "elm-review": "^2.7.0",
     "parcel": "^2.7.0"
-  },
-  "peerDependencies": {
-    "elm-format": "^0.8.5"
   }
 }

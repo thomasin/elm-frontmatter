@@ -2,12 +2,15 @@ In a vaguely similar way to [Haykll](https://jaspervdj.be/hakyll/), [Jekyll](htt
 turns Frontmatter files into Elm code that you can then import and use in your Elm app like any
 other module.
 
+The package works as expected, but worth being aware there is still quite a bit of work to go
+into making it a nice user experience.
+
 ## Installation
 
-`npm install elm-frontmatter`  
-`elm install thomasin/elm-frontmatter`  
-Note `elm-frontmatter` has a peer dependency on `elm-format`, if using a NPM
-version <7, you may also need to run `npm install elm-format`
+`npm install elm-frontmatter`
+`elm install thomasin/elm-frontmatter`
+Note `elm-frontmatter` attempts to use `elm-format` to format generated files.
+If it is not installed, files will still be written.
 
 ## Setup
 

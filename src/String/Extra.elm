@@ -22,22 +22,25 @@ decapitalize =
 {-
     classify "-moz-transform" == "MozTransform"
     classify "01-intro\\" == "Intro"
+    classify "intro1\\" == "Intro1"
 -}
 classify : String -> String
 classify str =
     let
-        removeSymbols : Char -> Char
-        removeSymbols char =
+        removeSymbols : Char -> String -> String
+        removeSymbols char word =
             if Char.isAlpha char then
-                char
+                word ++ String.fromChar char
+
+            else if Char.isDigit char && not (String.isEmpty (String.trim word)) then
+                word ++ String.fromChar char
 
             else
-                ' '
+                word ++ " "
 
     in
     String.toList str
-        |> List.map removeSymbols
-        |> String.fromList
+        |> List.foldl removeSymbols ""
         |> String.words
         |> List.map (changeCase Char.toUpper)
         |> String.join ""

@@ -30,6 +30,10 @@ suite =
                 \() ->
                     String.camelize "01-getting-started/" 
                         |> Expect.equal "gettingStarted"
+            , Test.test """""getting-started-01/" == "gettingStarted01" """ <|
+                \() ->
+                    String.camelize "getting-started-01/" 
+                        |> Expect.equal "gettingStarted01"
             , Test.test """""[01-getting-started]" == "gettingStarted" """ <|
                 \() ->
                     String.camelize "[01-getting-started]" 
@@ -60,6 +64,10 @@ suite =
                 \() ->
                     String.classify "01-getting-started/" 
                         |> Expect.equal "GettingStarted"
+            , Test.test """""getting-started-01/" == "GettingStarted01" """ <|
+                \() ->
+                    String.classify "getting-started-01/" 
+                        |> Expect.equal "GettingStarted01"
             , Test.test """""[01-getting-started]" == "GettingStarted" """ <|
                 \() ->
                     String.classify "[01-getting-started]" 
