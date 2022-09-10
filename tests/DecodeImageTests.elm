@@ -37,10 +37,10 @@ suite =
                         imageDecoder = Image.process copyArgs []
                             
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             decoder.typeAnnotation context
-                                |> writeTypeAnnotation
+                                |> Utils.writeTypeAnnotation
                                 |> Expect.equal "String"
                         )
                 )
@@ -51,12 +51,12 @@ suite =
                         imageDecoder = Image.process copyArgs []
                             
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
                                     decoder.asExpression context actions
-                                        |> writeExpression
+                                        |> Utils.writeExpression
                                         |> Expect.equal "\"/image-gen/recipes/banner.jpg\""
 
                                 Err err ->
@@ -70,12 +70,12 @@ suite =
                         imageDecoder = Image.process copyArgs [ Image.width 500 ]
 
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
                                     decoder.asExpression context actions
-                                        |> writeExpression
+                                        |> Utils.writeExpression
                                         |> Expect.equal "\"/image-gen/recipes/banner.jpg\""
 
                                 Err err ->
@@ -89,7 +89,7 @@ suite =
                         imageDecoder = Image.process copyArgs [ Image.width 500 ]
 
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
@@ -108,7 +108,7 @@ suite =
                         imageDecoder = Image.process copyArgs [ Image.width 500, Image.width 500 ]
 
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
@@ -133,10 +133,10 @@ suite =
                             ]
 
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             decoder.typeAnnotation context
-                                |> writeTypeAnnotation
+                                |> Utils.writeTypeAnnotation
                                 |> Expect.equal """((String, String), List ((String, String)))"""
                         )
                 )
@@ -151,12 +151,12 @@ suite =
                             ]
 
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
                                     decoder.asExpression context actions
-                                        |> writeExpression
+                                        |> Utils.writeExpression
                                         |> Expect.equal "((\"300\", \"/image-gen/recipes/banner-300.jpg\"), [(\"600\", \"/image-gen/recipes/banner-600.jpg\"), (\"1200\", \"/image-gen/recipes/banner-1200.jpg\")])"
 
                                 Err err ->
@@ -174,12 +174,12 @@ suite =
                             ]
 
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
                                     decoder.asExpression context actions
-                                        |> writeExpression
+                                        |> Utils.writeExpression
                                         |> Expect.equal "((\"300\", \"/image-gen/recipes/banner-300.jpg\"), [(\"600\", \"/image-gen/recipes/banner-600.jpg\"), (\"1200\", \"/image-gen/recipes/banner-1200.jpg\")])"
 
                                 Err err ->
@@ -197,7 +197,7 @@ suite =
                             ]
 
                     in
-                    Utils.testDecoder "/recipes/content.md" imageDecoder
+                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->

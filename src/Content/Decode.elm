@@ -1,5 +1,5 @@
 module Content.Decode exposing
-    ( QueryResult, FrontmatterDecoder, fromSyntax, frontmatter, frontmatterWithoutBody, throw, ignore
+    ( QueryResult, fromSyntax, frontmatter, frontmatterWithoutBody, throw, ignore
     , Attribute, attribute, renameTo
     , Decoder, string, int, float, datetime, anonymousRecord, list, reference
     , DecodedAttribute
@@ -11,7 +11,7 @@ module Content.Decode exposing
 
 # Declaration
 
-@docs QueryResult, FrontmatterDecoder, frontmatter, frontmatterWithoutBody, throw, ignore
+@docs QueryResult, frontmatter, frontmatterWithoutBody, throw, ignore
 
 
 # Attribute
@@ -39,16 +39,6 @@ import List.Extra as List
 import String.Extra as String
 import Path
 import Time
-
-
-
--- Declaration --
-
-
-{-| Declare a frontmatter decoder
--}
-type alias FrontmatterDecoder =
-    Content.Decode.Internal.Declaration
 
 
 {-| The result of trying to find a decoder for a file
@@ -164,27 +154,6 @@ frontmatter bodyDecoder attributes =
                         )
             }
         )
-
-
---| If this is returned with a `FrontmatterDecoder` from the main `decoder` function it will
---apply the frontmatter decoder to the matched file.
-
---    decoder : Content.Type.Path -> Content.Decode.QueryResult
---    decoder typePath =
---        case typePath of
---            Content.Type.Single [ "Content", "Index" ] ->
---                    Content.Decode.frontmatter Content.Decode.string
---                        [ Content.Decode.attribute "title" Content.Decode.string
---                        , Content.Decode.attribute "description" Content.Decode.string
---                        ]
-
---            _ ->
---                Content.Decode.throw
-
-
---using : FrontmatterDecoder -> QueryResult
---using =
---    Content.Decode.Internal.Found
 
 
 {-| If this is returned from the main `decoder` function it will throw an error.
@@ -371,7 +340,8 @@ type alias Decoder a =
     Content.Decode.Internal.Decoder a
 
 
-{-| Decoder context passed down. Contains the file path of the file currently being decoded.
+{-| Decoder context passed down. Contains the file path and module directory of the file currently being decoded.
+    This is currently opaque, but if needed I can add a function to get the current file path.
 -}
 type alias Context =
     Content.Decode.Internal.DecoderContext
@@ -533,7 +503,7 @@ list (Content.Decode.Internal.Decoder decoder) =
 
 
 
-{-| Links to another content record. Given a markdown file `index.md` containing
+{-| References another content record. Given a markdown file `index.md` containing
 
 ```yaml
 ---
@@ -581,27 +551,18 @@ reference typePath =
         moduleDir =
             Content.Type.toModuleDir typePath
 
-        linkedFunctionIsInCurrentModule : Context -> Bool
-        linkedFunctionIsInCurrentModule context =
-            case Content.Function.fromPath context.inputFilePath of
-                Ok currentFunction ->
-                    currentFunction.moduleDir == moduleDir
-
-                Err _ ->
-                    False
-
     in
     Content.Decode.Internal.Decoder
         { typeAnnotation =
-            \context ->
-                if linkedFunctionIsInCurrentModule context then
+            \(Content.Decode.Internal.DecoderContext context) ->
+                if context.moduleDir == moduleDir then
                     Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], typeName )) []
 
                 else
                     Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( moduleDir, typeName )) []
         , imports =
-            \context ->
-                if linkedFunctionIsInCurrentModule context then
+            \(Content.Decode.Internal.DecoderContext context) ->
+                if context.moduleDir == moduleDir then
                     []
 
                 else
@@ -611,19 +572,19 @@ reference typePath =
                       }
                     ]
         , jsonDecoder =
-            \context ->
+            \(Content.Decode.Internal.DecoderContext context) ->
                 Json.Decode.string
                     |> Json.Decode.andThen
                         (\filePathStr ->
                             case Path.fromString (Path.platform context.inputFilePath) filePathStr of
                                 Ok filePath ->
-                                    case Result.map2 Tuple.pair (Content.Function.fromPath context.inputFilePath) (Content.Function.fromPath filePath) of
-                                        Ok ( currentFunction, linkedFunction ) ->
-                                            if currentFunction.moduleDir == linkedFunction.moduleDir then
+                                    case Content.Function.fromPath filePath of
+                                        Ok linkedFunction ->
+                                            if context.moduleDir == moduleDir then
                                                 Json.Decode.succeed ( [], linkedFunction.name )
 
                                             else
-                                                Json.Decode.succeed ( linkedFunction.moduleDir, linkedFunction.name )
+                                                Json.Decode.succeed ( moduleDir, linkedFunction.name )
 
                                         Err Content.Function.PathIsHidden ->
                                             Json.Decode.fail ("Referenced path is hidden: " ++ filePathStr)

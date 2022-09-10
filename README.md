@@ -1,19 +1,16 @@
 ~~ warning: this program does not have comprehensive tests ~~
 
-## Prerequisites
-
-`elm-frontmatter` can be installed with NPM
-
 ## Installation
 
 `npm install elm-frontmatter`  
+`elm install thomasin/elm-frontmatter`  
 Note `elm-frontmatter` has a peer dependency on `elm-format`, if using a NPM
 version <7, you may also need to run `npm install elm-format`
 
 ## Setup
 
-To get started, create a folder `/content` at the root of your application.  
-In that `/content` directory, run `elm init` and `elm install thomasin/elm-frontmatter` to generate an `elm.json`.  
+To get started, create a folder `/content` in the same directory as your `elm.json`.  
+
 To decode your first frontmatter file you can populate:  
 
 - a file `/content/index.md` with
@@ -23,10 +20,10 @@ To decode your first frontmatter file you can populate:
 title: First page
 ---
 
-I am using elm-frontmatter
+woohoo
 ```
 
-- a file `/content/src/Content.elm` with
+- a file `Content.elm` (placed in whichever folder your `Main.elm` is in) with
 
 ```elm
 module Content exposing (decoder)
@@ -34,12 +31,12 @@ module Content exposing (decoder)
 import Content.Decode as Decode
 import Content.Type as Type
 
--- Required by the CLI app and cannot be removed or unexposed.
+-- Required by the Node app and cannot be removed or unexposed.
 decoder : Type.Path -> Decode.QueryResult
 decoder typePath =
     case typePath of
         Type.Single "Content.Index" ->
-            Decode.frontmatter
+            Decode.frontmatter Decode.string
                 [ Decode.attribute "title" Decode.string
                 ]
         _ ->
@@ -47,22 +44,46 @@ decoder typePath =
 
 ```
 
-- and finally a `frontmatter.config.js` file with a config object that points to your newly made `/content`,
-  directory, and the source directory of your Elm project. I think soon we will have CLI args (:
-
-```js
-module.exports = {
-    inputDir: './content/', // Where to find the content frontmatter files, elm.json and Content.elm
-    inputGlob: '**/*.md', // Which files to treat as frontmatter. Will always ignore files starting with a "."
-    elmDir: './src/', // Which folder to add the generated `Content` directory to. This should be a root Elm folder.
-}
-```
-
-Note that an auto-generated `Content/` folder will be created in the folder you specifiy as `elmDir`.
-
 ## Running
 
 Run with `npx elm-frontmatter`
+
+```bash
+# Will look for frontmatter files in ./content/ and an elm.json file at ./elm.json.
+# Will look for a Content.elm file in the first folder listed in your elm.json's `source-directories`,
+# and will output the generated `Content` files into that same folder.
+elm-frontmatter
+# Will look for frontmatter files in ./md/ and an elm.json file at ./elm/elm.json.
+# Will look for a Content.elm file in the first folder listed in your elm.json's `source-directories`,
+# and will output the generated `Content` files into that same folder.
+elm-frontmatter  --elm-json-dir=./elm ./md
+# Will look for .md files in ./md/ and an elm.json file at ./elm/elm.json.
+# Will look for a Content.elm file in the first folder listed in your elm.json's `source-directories`,
+# and will output the generated `Content` files into that same folder.
+elm-frontmatter --elm-dir='./src/elm'
+# Will look for .md files in ./content/ and an elm.json file at ./elm.json.
+# Will look for a Content.elm file at ./src/elm/,
+# and will output the generated `Content` files also into ./src/elm.
+elm-frontmatter --elm-dir='./src/elm'
+# Same as previous except will generate new files without asking for confirmation.
+# If `--yes` or `-y` is used, the `--elm-dir` argument must also be provided.
+elm-frontmatter --elm-dir='./src/elm' -y
+```
+
+### Options
+
+- `--glob`  
+  Will only process frontmatter files in your content directory that match this glob.  
+  Defaults to `**/*.md`.
+- `--elm-json-dir`  
+  The directory that contains your project's `elm.json` file.
+  Defaults to `.` (current directory).
+- `--elm-dir`  
+  The directory that contains your project's `Main.elm` file.
+  Defaults to the first directory in your `elm.json` `source-directories` array.
+- `--yes`/`-y`  
+  Set this to generate Elm files without asking for permission.  
+  `--elm-dir` needs to be set to use this argument.
 
 ## Directory structure
 
@@ -70,17 +91,17 @@ Run with `npx elm-frontmatter`
 .
 └── content
     └── about
-    |   └── content.md // <- /Content/About.elm
+    |   └── content.md --> /Content/About.elm
     ├── posts
-    |   ├── content.md // <- /Content/Posts.elm
-    |   ├── [first-post].md // <- /Content/Posts.elm
+    |   ├── content.md --> /Content/Posts.elm
+    |   ├── [first-post].md --> /Content/Posts.elm
     |   ├── [second-post]  
-    |   |   └── content.md // <- /Content/Posts.elm
+    |   |   └── content.md --> /Content/Posts.elm
     |   └── happy 
-    |      └── ness.md // <- /Content/Posts/Happy/Ness.elm
+    |      └── ness.md --> /Content/Posts/Happy/Ness.elm
     └── quote
-        ├── first.md // <- /Content/Quote/First.elm
-        └── second.md // <- /Content/Quote/Second.elm
+        ├── first.md --> /Content/Quote/First.elm
+        └── second.md --> /Content/Quote/Second.elm
 ```
 
 Once decoded, a generated `/Content` folder for this would look like
@@ -141,10 +162,10 @@ will generate
 
 ### Singleton vs collection item files
 
-The two types of files you can have are singleton or collection item files. List item files are surrounded by brackets `[file-name].md`.  
-List item files share a type with other bracketed files at the same level, and will be generated into the same module.  
+The two types of files you can have are singleton or collection item files. Collection item files are surrounded by brackets `[file-name].md`.  
+Collection item files share a type with other bracketed files at the same level, and will be generated into the same module.  
 Singleton files will be turned into a `content` function in a module based on their file name. They can share a module with collection item functions, but two singleton functions won't share a module.  
-When writing your `Content.elm#decoder` function, singleton files can be matched using `Content.Type.Single [ "Content", "Output", "Module", "Dir" ]`. List item files can be matched using `Content.Type.Collection [ "Content", "Output", "Module", "Dir" ]`.
+When writing your `Content.elm#decoder` function, singleton files can be matched using `Content.Type.Single [ "Content", "Output", "Module", "Dir" ]`. Collection item files can be matched using `Content.Type.Collection [ "Content", "Output", "Module", "Dir" ]`.
 
 ```
 module Content exposing (decoder)

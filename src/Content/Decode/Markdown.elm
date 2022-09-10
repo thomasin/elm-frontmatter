@@ -61,7 +61,7 @@ decode =
                   , exposingList = Nothing
                   }
                 ]
-        , jsonDecoder = \args ->
+        , jsonDecoder = \_ ->
             Json.Decode.string
                 |> Json.Decode.andThen (\str ->
                     Markdown.Parser.parse str

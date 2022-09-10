@@ -1,4 +1,4 @@
-module Content.Decode.Internal exposing (DecoderContext, Attribute(..), Declaration(..), DeclarationResult(..), DecodedAttribute, Decoder(..), decoderToSyntax, escapedString)
+module Content.Decode.Internal exposing (DecoderContext(..), Attribute(..), Declaration(..), DeclarationResult(..), DecodedAttribute, Decoder(..), decoderToSyntax, escapedString)
 
 import Elm.Syntax.Expression
 import Elm.Syntax.Import
@@ -46,9 +46,11 @@ type Decoder a
         }
 
 
-type alias DecoderContext =
-    { inputFilePath : Path.Path
-    }
+type DecoderContext =
+    DecoderContext
+        { inputFilePath : Path.Path
+        , moduleDir : List String
+        }
 
 
 escapedString : String -> String

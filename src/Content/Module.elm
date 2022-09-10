@@ -111,7 +111,8 @@ generate platform declarationGenerator outputModule =
                                             (Content.Write.record
                                                 { functionName = functionName
                                                 , functionType = Content.Type.toTypeName typePath
-                                                , inputFilePath = functionDetails.inputFilePath
+                                                , decoderContext =
+                                                    Content.Decode.Internal.DecoderContext { inputFilePath = functionDetails.inputFilePath, moduleDir = outputModule.dir }
                                                 , frontmatter = functionDetails.frontmatter
                                                 , documentation = Just ("{-| Auto-generated from file " ++ Path.toString functionDetails.inputFilePath ++ "-}")
                                                 , decoder = Content.Decode.Internal.Declaration frontmatterDecoder

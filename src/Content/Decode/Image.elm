@@ -162,7 +162,7 @@ process copyArgs manipulations =
 batchProcess : CopyArgs -> ( String, List Manipulation ) -> List ( String, List Manipulation ) -> Decoder
 batchProcess copyArgs firstManipulation manipulations =
     let
-        syntax : Content.Decode.Syntax.Syntax { inputFilePath : Path.Path } ( ( String, String ), List ( String, String ) )
+        syntax : Content.Decode.Syntax.Syntax Content.Decode.Internal.DecoderContext ( ( String, String ), List ( String, String ) )
         syntax =
             Content.Decode.Syntax.tuple2
                 ( Content.Decode.Syntax.tuple2 ( Content.Decode.Syntax.string, Content.Decode.Syntax.string )

@@ -28,9 +28,9 @@ modulesToList filesDict =
             )
 
 
-newFunction : Content.Function.Function -> InputFile -> Contents -> Contents
-newFunction function inputDetails modules =
-    Dict.update function.moduleDir
+newFunction : List String -> Content.Function.Function -> InputFile -> Contents -> Contents
+newFunction contentModulePrefix function inputDetails modules =
+    Dict.update (contentModulePrefix ++ function.moduleDir)
         (\maybeExistingDetails ->
             case maybeExistingDetails of
                 Just existingDetails ->

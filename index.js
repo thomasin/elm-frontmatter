@@ -18,28 +18,34 @@ const plugins = require('./cli/plugins.js')
 //
 
 const args = commandLineArgs([
-  { name: 'src', defaultOption: true },
+  { name: 'src', defaultOption: true, defaultValue: './content/' },
   { name: 'glob', type: String, defaultValue: '**/*.md' },
   { name: 'elm-json-dir', type: String, defaultValue: '.', description: `The folder containing your app's elm.json file` },
-  { name: 'output-dir', type: String, defaultValue: '.', description: `The folder containing your app's elm.json file` },
+  { name: 'elm-dir', type: String, description: `The folder containing your app's elm files (usually ./src)` },
   { name: 'yes', alias: 'y', type: Boolean },
 ])
 
+if (args.yes && !args['elm-dir']) {
+    console.log(chalk.red('You cannot use the --yes/-y flag without also specifying --elm-dir'))
+    return
+}
+
 const config = {
-    inputDir: args.src ? args.src : '.',
+    inputDir: args.src,
     inputGlob: args.glob,
     elmJsonDir: args['elm-json-dir'],
+    elmDir: args['elm-dir'] || './src/' 
 }
 
 async function fileGlob() {
     return new Promise(async (resolveProgram, rejectProgram) => {
         const userElmJsonFile = await fs.readFile(path.join(process.cwd(), config.elmJsonDir, './elm.json'))
-        const userElmJson = JSON.parse(userElmJsonFile) 
-        const outputDir = args['output-dir'] || path.join(process.cwd(), config.elmJsonDir, userElmJson['source-directories'][0])
+        const userElmJson = JSON.parse(userElmJsonFile)
+        const elmDir = path.join(process.cwd(), config.elmDir) || path.join(process.cwd(), config.elmJsonDir, userElmJson['source-directories'][0])
 
         const absoluteFilePaths = glob.sync(path.join(process.cwd(), config.inputDir, config.inputGlob), {})
         const tempDir = await temp.mkdir('elm-frontmatter')
-        const elmApp = await buildElm(rejectProgram, config, outputDir, tempDir)
+        const elmApp = await buildElm(rejectProgram, config, elmDir, tempDir)
 
         if (!elmApp) { return }
 
@@ -72,16 +78,16 @@ async function fileGlob() {
                 const response = args.yes || await prompts({
                     type: 'confirm',
                     name: 'accepted',
-                    message: 'Overwrite the ' + path.join(outputDir, 'Content') + ' directory?'
+                    message: 'Overwrite the ' + path.join(elmDir, 'Content') + ' directory?'
                 })
 
                 if (args.yes || response.accepted) {
-                    await fs.emptyDir(path.join(outputDir, 'Content'))
-                    await fs.copy(path.join(tempDir, '/output/'), path.join(outputDir))
+                    await fs.emptyDir(path.join(elmDir, 'Content'))
+                    await fs.copy(path.join(tempDir, '/output/'), path.join(elmDir))
 
                     console.log(chalk.bold.green("\nAll files written ✍️"))
 
-                    const result = spawn.sync('npx', ['elm-format', '--elm-version=0.19', '--yes', path.join(outputDir, 'Content')], {
+                    const result = spawn.sync('npx', ['elm-format', '--elm-version=0.19', '--yes', path.join(elmDir, 'Content')], {
                         stdio: ['ignore', 'ignore', 'ignore']
                     })
                 } else {
@@ -95,7 +101,7 @@ async function fileGlob() {
 
         /* Perform a side effect like copying/resizing images */
         elmApp.ports.performEffect.subscribe(async (file) => {
-            // To-Do: Ask for permission to do file generation
+            // TO-DO: Ask for permission to do file generation
             try {
                 await Promise.all(file.actions.map((action) => {
                     if (plugins[action.with]) {

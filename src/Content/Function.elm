@@ -146,7 +146,7 @@ fromPath filePath =
                                 |> Result.map (fillInModuleDir (String.classify folderName))
                                 |> Result.map (fillInFunction ( SingletonFunction, "content" ))
     in
-    case Result.andThen continuePath (Result.combine (Debug.log "cleaned" (List.map cleanFilePiece (Path.toList filePath)))) of
+    case Result.andThen continuePath (Result.combine (List.map cleanFilePiece (Path.toList filePath))) of
         Ok details ->
             case details.function of
                 Nothing ->
@@ -159,7 +159,7 @@ fromPath filePath =
 
                         _ ->
                             Ok
-                                { moduleDir = "Content" :: details.moduleDir
+                                { moduleDir = details.moduleDir
                                 , name = functionName
                                 , type_ = functionType
                                 }

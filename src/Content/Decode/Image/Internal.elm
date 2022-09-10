@@ -1,5 +1,6 @@
 module Content.Decode.Image.Internal exposing (ActionDetails(..), Manipulation, Manipulations(..), createActions, encodeActionDetails)
 
+import Content.Decode.Internal
 import Json.Decode
 import Json.Encode
 import Path
@@ -36,25 +37,25 @@ type alias CopyArgs =
     }
 
 
-createActions : { inputFilePath : Path.Path } -> CopyArgs -> Manipulations -> String -> Json.Decode.Decoder ( ActionDetails, List ActionDetails )
-createActions args copyArgs manipulations originalSrc =
+createActions : Content.Decode.Internal.DecoderContext -> CopyArgs -> Manipulations -> String -> Json.Decode.Decoder ( ActionDetails, List ActionDetails )
+createActions (Content.Decode.Internal.DecoderContext context) copyArgs manipulations originalSrc =
     let
         copyFromPathResult : Result String Path.Path
         copyFromPathResult =
-            Path.fromString (Path.platform args.inputFilePath) originalSrc
+            Path.fromString (Path.platform context.inputFilePath) originalSrc
 
         copyToPathResult : Result String Path.Path
         copyToPathResult =
-            Path.fromList (Path.platform args.inputFilePath) [ copyArgs.copyToDirectory, Path.dir args.inputFilePath ]
+            Path.fromList (Path.platform context.inputFilePath) [ copyArgs.copyToDirectory, Path.dir context.inputFilePath ]
 
         rewritePathResult : Result String Path.Path
         rewritePathResult =
-            Path.fromList (Path.platform args.inputFilePath) [ copyArgs.publicDirectory, Path.dir args.inputFilePath ]
+            Path.fromList (Path.platform context.inputFilePath) [ copyArgs.publicDirectory, Path.dir context.inputFilePath ]
     in
     case Result.map3 (\a b c -> ( a, b, c )) copyFromPathResult copyToPathResult rewritePathResult of
         Ok ( copyFromPath, copyToPath, rewritePath ) ->
             Json.Decode.succeed
-                (createActionDetails manipulations args.inputFilePath copyFromPath copyToPath rewritePath)
+                (createActionDetails manipulations context.inputFilePath copyFromPath copyToPath rewritePath)
 
         Err err ->
             Json.Decode.fail err

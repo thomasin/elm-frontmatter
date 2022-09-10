@@ -23,6 +23,11 @@ contentDecoder =
     --always Content.Decode.ignore
 
 
+contentModulePrefix : List String
+contentModulePrefix =
+    [ "Content" ]
+
+
 type Msg
     = Add Modules.InputFile
     | Problem String
@@ -111,7 +116,7 @@ update msg model =
                     List.map (\undecodedModule ->
                         moduleGenerationToOutput undecodedModule.dir (Content.Module.generate model.platform contentDecoder undecodedModule)
                     ) (Modules.modulesToList model.modulesContents)
-                    
+
             in
             case Output.sequence generatedModules of
                 Output.Continue messages allFiles ->
@@ -134,7 +139,7 @@ update msg model =
         Add inputFile ->
             case functionPathResultToOutput (Content.Function.fromPath inputFile.filePath) of
                 Output.Continue messages functionDetails ->
-                    ( { model | modulesContents = Modules.newFunction functionDetails inputFile model.modulesContents }
+                    ( { model | modulesContents = Modules.newFunction contentModulePrefix functionDetails inputFile model.modulesContents }
                     , Ports.show (Output.encodeMessages messages)
                     )
 
