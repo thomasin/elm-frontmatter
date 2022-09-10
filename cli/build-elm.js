@@ -16,17 +16,10 @@ async function buildElm(rejectProgram, config, outputDir, dirPath) {
     }
 
     // Copy the user created Content.elm file into the temporary directory.
-    await fs.copy(path.join(outputDir, './Content.elm'), path.join(dirPath, './src/Content.elm'))
+    await fs.copy(path.join(outputDir, './Content.elm'), path.join(dirPath, './cli/elm/src/Content.elm'))
 
     // Copy the node package Elm code into the temporary directory.
     await fs.copy(path.join(__dirname, './elm/src/'), path.join(dirPath, './cli/elm/src/'))
-
-    // // Copy the node package elm.json into the temporary directory.
-    // await fs.copy(path.join(__dirname, './elm.json'), path.join(dirPath, './cli/elm.json'))
-
-    // Copy the Elm package files into the temporary directory.
-    await fs.copy(path.join(__dirname, '../src/Content/'), path.join(dirPath, './src/Content/'))
-    await fs.copy(path.join(__dirname, '../src/String/'), path.join(dirPath, './src/String/'))
 
     try {
         const result = spawn.sync('elm', ['make', './elm/src/Main.elm', '--output', '../elm.js'], {
