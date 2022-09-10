@@ -37,7 +37,7 @@ import Content.Type as Type
 decoder : Type.Path -> Decode.QueryResult
 decoder typePath =
     case typePath of
-        Type.Single "Content.Index" ->
+        Type.Single [ "Content", "Index" ] ->
             Decode.frontmatter Decode.string
                 [ Decode.attribute "title" Decode.string
                 ]
