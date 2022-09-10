@@ -1,5 +1,3 @@
-~~ warning: this program does not have comprehensive tests ~~
-
 ## Installation
 
 `npm install elm-frontmatter`  
