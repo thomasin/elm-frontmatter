@@ -34,6 +34,7 @@ import Elm.Syntax.Expression
 import Elm.Syntax.ModuleName
 import Elm.Syntax.TypeAnnotation
 import Json.Decode
+import Json.Encode
 import Json.Decode.Extra
 import List.Extra as List
 import String.Extra as String
@@ -351,7 +352,7 @@ type alias Context =
     This lets you use custom JSON decoders to ensure the content you are receiving is valid.
     The Syntax object passed should be the Syntax object matching the output type of your JSON decoder.
 
-    Content.Decode.fromSyntax Content.Decode.Syntax.int
+    Content.Decode.fromSyntax Content.Decode.Syntax.int (always [])
         ( Json.Decode.int
             |> Json.Decode.andThen (\number ->
                 if number > 0 then
@@ -362,14 +363,14 @@ type alias Context =
             )
         )
 -}
-fromSyntax : Content.Decode.Syntax.Syntax Context a -> (Context -> Json.Decode.Decoder a) -> Decoder a
-fromSyntax syntax jsonDecoder =
+fromSyntax : Content.Decode.Syntax.Syntax Context a -> (a -> List { with : String, args : Json.Encode.Value }) -> (Context -> Json.Decode.Decoder a) -> Decoder a
+fromSyntax syntax actions jsonDecoder =
     Content.Decode.Internal.Decoder
         { typeAnnotation = syntax.typeAnnotation
         , imports = syntax.imports
         , jsonDecoder = jsonDecoder
         , asExpression = syntax.expression
-        , actions = always []
+        , actions = actions
         }
 
 
@@ -383,7 +384,7 @@ fromSyntax syntax jsonDecoder =
 -}
 string : Decoder String
 string =
-    fromSyntax Content.Decode.Syntax.string
+    fromSyntax Content.Decode.Syntax.string (always [])
         (always Json.Decode.string)
 
 
@@ -397,7 +398,7 @@ string =
 -}
 int : Decoder Int
 int =
-    fromSyntax Content.Decode.Syntax.int
+    fromSyntax Content.Decode.Syntax.int (always [])
         (always Json.Decode.int)
 
 
@@ -411,7 +412,7 @@ int =
 -}
 float : Decoder Float
 float =
-    fromSyntax Content.Decode.Syntax.float
+    fromSyntax Content.Decode.Syntax.float (always [])
         (always Json.Decode.float)
 
 
@@ -452,7 +453,7 @@ This will generate the `Content/Index.elm` file
 -}
 datetime : Decoder Time.Posix
 datetime =
-    fromSyntax Content.Decode.Syntax.datetime
+    fromSyntax Content.Decode.Syntax.datetime (always [])
         (always Json.Decode.Extra.datetime)
 
 
@@ -499,8 +500,8 @@ This will generate the `Content/Index.elm` file
 list : Decoder a -> Decoder (List a)
 list (Content.Decode.Internal.Decoder decoder) =
     fromSyntax (Content.Decode.Syntax.list (Content.Decode.Internal.decoderToSyntax (Content.Decode.Internal.Decoder decoder)))
+        (List.concatMap decoder.actions)
         (Json.Decode.list << decoder.jsonDecoder)
-
 
 
 {-| References another content record. Given a markdown file `index.md` containing

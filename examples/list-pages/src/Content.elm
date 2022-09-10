@@ -10,7 +10,7 @@ import Slug
 
 slugDecoder : Decode.Decoder String
 slugDecoder =
-    Decode.fromSyntax Syntax.string
+    Decode.fromSyntax Syntax.string (always [])
         (\_ ->
             Json.Decode.string
                 |> Json.Decode.andThen

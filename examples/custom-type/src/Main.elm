@@ -114,7 +114,7 @@ pageDecoder =
                 }
 
     in
-    Decode.fromSyntax pageSyntax
+    Decode.fromSyntax pageSyntax (always [])
         (\\_ ->
             Json.Decode.string
                 |> Json.Decode.andThen
