@@ -1,8 +1,7 @@
 {
     "type": "application",
     "source-directories": [
-        "elm/src",
-        "../src"
+        "elm/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {
@@ -23,6 +22,7 @@
             "rtfeldman/elm-hex": "1.0.0",
             "stil4m/elm-syntax": "7.2.9",
             "stil4m/structured-writer": "1.0.3",
+            "thomasin/elm-frontmatter": "2.0.0",
             "thomasin/elm-path": "1.0.2"
         },
         "indirect": {
