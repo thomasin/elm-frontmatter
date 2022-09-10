@@ -1,3 +1,7 @@
+In a vaguely similar way to [Haykll](https://jaspervdj.be/hakyll/), [Jekyll](https://jekyllrb.com/),
+turns Frontmatter files into Elm code that you can then import and use in your Elm app like any
+other module.
+
 ## Installation
 
 `npm install elm-frontmatter`  
