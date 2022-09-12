@@ -1,5 +1,4 @@
-module Content.Module exposing (Module, GenerationError(..), UndecodedFunction, UndecodedModule, generate)
-
+module Content.Module exposing (UndecodedModule, UndecodedFunction, Module, generate, GenerationError(..))
 
 {-| This module is used by the CLI app, and is meant for generating an output module out of function details.
 Decode a file from one or many JSON frontmatter values.
@@ -8,9 +7,8 @@ Decode a file from one or many JSON frontmatter values.
 
 -}
 
-
-import Content.Decode.Internal
 import Content.Decode
+import Content.Decode.Internal
 import Content.Function
 import Content.Type
 import Content.Type.Internal
@@ -22,8 +20,7 @@ import Path
 import Result.Extra as Result
 
 
-{-|
-The outline of a yet-to-be-decoded module.
+{-| The outline of a yet-to-be-decoded module.
 -}
 type alias UndecodedModule =
     { dir : List String
@@ -31,18 +28,15 @@ type alias UndecodedModule =
     }
 
 
-{-|
-Information about an undecoded function. `filePath` is the path
+{-| Information about an undecoded function. `filePath` is the path
 of the input file whose contents are decoded to form the function body.
 `functionType` is whether this function's type is a singleton or collection item.
 Singleton function types are named `Content`, whereas collection item types are named `CollectionItem`.
 This gets converted to a [Content.Type.Path](Content-Type#Path) and used to query for the decoder.
 
-```elm
-{ filePath = "ingredients/egg.md", functionType = Content.Function.SingletonFunction, ... } == Content.Type.Single [ "Content", "Ingredients", "Egg" ]
+    { filePath = "ingredients/egg.md", functionType = Content.Function.SingletonFunction, ... } == Content.Type.Single [ "Content", "Ingredients", "Egg" ]
 
-{ filePath = "[recipes].md", functionType = Content.Function.CollectionItemFunction, ... } == Content.Type.Collection [ "Content", "Recipes" ]
-```
+    { filePath = "[recipes].md", functionType = Content.Function.CollectionItemFunction, ... } == Content.Type.Collection [ "Content", "Recipes" ]
 
 `fileFrontmatter` contains the JSON encoded frontmatter value of the file. This function expects data
 to be in the same shape as [gray-matter](https://github.com/jonschlinkert/gray-matter) output.
@@ -56,6 +50,7 @@ to be in the same shape as [gray-matter](https://github.com/jonschlinkert/gray-m
     }
 }
 ```
+
 -}
 type alias UndecodedFunction =
     { inputFilePath : Path.Path
@@ -64,10 +59,9 @@ type alias UndecodedFunction =
     }
 
 
-{-|
-The outputted file.
+{-| The outputted file.
 Actions are consumed by the `elm-frontmatter` npm package, and contain
-instructions to be processed by JS code, currently limited to [image processing](Content-Decode-Image). 
+instructions to be processed by JS code, currently limited to [image processing](Content-Decode-Image).
 -}
 type alias Module =
     { path : Path.Path
@@ -76,8 +70,7 @@ type alias Module =
     }
 
 
-{-|
-Gets returnd when file generation fails
+{-| Gets returnd when file generation fails
 -}
 type GenerationError
     = NoMatchingDecoder Content.Type.Path
@@ -86,8 +79,7 @@ type GenerationError
     | DecoderError Content.Type.Path Json.Decode.Error
 
 
-{-|
-Takes a function that can query for a decoder based on type path, and an undecoded module.
+{-| Takes a function that can query for a decoder based on type path, and an undecoded module.
 Returns the file path and contents for the decoded module.
 -}
 generate : Path.Platform -> (Content.Type.Path -> Content.Decode.QueryResult) -> UndecodedModule -> Result GenerationError Module

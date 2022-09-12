@@ -24,7 +24,6 @@ import Elm.Syntax.Expression
 import Elm.Syntax.Import
 import Elm.Syntax.Node
 import Elm.Syntax.TypeAnnotation
-import Path
 import Time
 
 
@@ -50,15 +49,16 @@ noContext args =
 
 
 {-| String
-    An important note is that this will escape '"' and '\', as it is meant for user provided strings.
-    If you want to pass it hardcoded strings this might be a problem.
+An important note is that this will escape '"' and '', as it is meant for user provided strings.
+If you want to pass it hardcoded strings this might be a problem.
 -}
 string : Syntax context String
 string =
     { typeAnnotation = \_ -> Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "String" )) []
     , imports = \_ -> []
-    , expression = \_ value ->
-        Elm.Syntax.Expression.Literal (String.replace "\"" "\\\"" (String.replace "\\" "\\\\" value))
+    , expression =
+        \_ value ->
+            Elm.Syntax.Expression.Literal (String.replace "\"" "\\\"" (String.replace "\\" "\\\\" value))
     }
 
 
@@ -66,7 +66,7 @@ string =
 -}
 int : Syntax context Int
 int =
-    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Int" )) [])
+    { typeAnnotation = \_ -> Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Int" )) []
     , imports = \_ -> []
     , expression = \_ value -> Elm.Syntax.Expression.Integer value
     }
@@ -76,7 +76,7 @@ int =
 -}
 float : Syntax context Float
 float =
-    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Float" )) [])
+    { typeAnnotation = \_ -> Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Float" )) []
     , imports = \_ -> []
     , expression = \_ value -> Elm.Syntax.Expression.Floatable value
     }
@@ -86,8 +86,8 @@ float =
 -}
 bool : Syntax context Bool
 bool =
-    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Bool" )) [])
-    , imports = \_ -> ([])
+    { typeAnnotation = \_ -> Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [], "Bool" )) []
+    , imports = \_ -> []
     , expression =
         \_ bool_ ->
             Elm.Syntax.Expression.FunctionOrValue []
@@ -104,13 +104,14 @@ bool =
 -}
 datetime : Syntax context Time.Posix
 datetime =
-    { typeAnnotation = \_ -> (Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [ "Time" ], "Posix" )) [])
-    , imports = \_ -> 
-        [ { moduleName = Content.Internal.node [ "Time" ]
-          , moduleAlias = Nothing
-          , exposingList = Nothing
-          }
-        ]
+    { typeAnnotation = \_ -> Elm.Syntax.TypeAnnotation.Typed (Content.Internal.node ( [ "Time" ], "Posix" )) []
+    , imports =
+        \_ ->
+            [ { moduleName = Content.Internal.node [ "Time" ]
+              , moduleAlias = Nothing
+              , exposingList = Nothing
+              }
+            ]
     , expression =
         \context posix ->
             Elm.Syntax.Expression.Application
@@ -125,10 +126,11 @@ datetime =
 -}
 list : Syntax context a -> Syntax context (List a)
 list item =
-    { typeAnnotation = \context ->
-        Elm.Syntax.TypeAnnotation.Typed
-            (Content.Internal.node ( [], "List" ))
-            [ Content.Internal.node (item.typeAnnotation context) ]
+    { typeAnnotation =
+        \context ->
+            Elm.Syntax.TypeAnnotation.Typed
+                (Content.Internal.node ( [], "List" ))
+                [ Content.Internal.node (item.typeAnnotation context) ]
     , imports = item.imports
     , expression =
         \context value ->
@@ -142,12 +144,13 @@ list item =
 -}
 dict : Syntax context key -> Syntax context value -> Syntax context (List ( key, value ))
 dict keyItem valueItem =
-    { typeAnnotation = \context ->
-        Elm.Syntax.TypeAnnotation.Typed
-            (Content.Internal.node ( [ "Dict" ], "Dict" ))
-            [ Content.Internal.node (keyItem.typeAnnotation context)
-            , Content.Internal.node (valueItem.typeAnnotation context)
-            ]
+    { typeAnnotation =
+        \context ->
+            Elm.Syntax.TypeAnnotation.Typed
+                (Content.Internal.node ( [ "Dict" ], "Dict" ))
+                [ Content.Internal.node (keyItem.typeAnnotation context)
+                , Content.Internal.node (valueItem.typeAnnotation context)
+                ]
     , imports =
         \context ->
             { moduleName = Content.Internal.node [ "Dict" ]
@@ -174,13 +177,15 @@ dict keyItem valueItem =
 -}
 tuple2 : ( Syntax context a, Syntax context b ) -> Syntax context ( a, b )
 tuple2 ( itemA, itemB ) =
-    { typeAnnotation = \context ->
-        Elm.Syntax.TypeAnnotation.Tupled
-            [ Content.Internal.node (itemA.typeAnnotation context)
-            , Content.Internal.node (itemB.typeAnnotation context)
-            ]
-    , imports = \context ->
-        List.concat [ itemA.imports context, itemB.imports context ]
+    { typeAnnotation =
+        \context ->
+            Elm.Syntax.TypeAnnotation.Tupled
+                [ Content.Internal.node (itemA.typeAnnotation context)
+                , Content.Internal.node (itemB.typeAnnotation context)
+                ]
+    , imports =
+        \context ->
+            List.concat [ itemA.imports context, itemB.imports context ]
     , expression =
         \context ( decodedA, decodedB ) ->
             Elm.Syntax.Expression.TupledExpression
@@ -220,7 +225,8 @@ There aren't many helpers in this module for building up custom types so I would
 for not at least offering this.
 -}
 node : a -> Elm.Syntax.Node.Node a
-node = Content.Internal.node
+node =
+    Content.Internal.node
 
 
 

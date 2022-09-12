@@ -17,8 +17,8 @@ type Manipulations
     | Batch ( String, List Manipulation ) (List ( String, List Manipulation ))
 
 
-type ActionDetails =
-    ActionDetails
+type ActionDetails
+    = ActionDetails
         { paths :
             { copyFromBase : Path.Path
             , copyFromPath : Path.Path
@@ -69,16 +69,16 @@ createActionDetails manipulations inputFilePath copyFromPath copyToPath rewriteP
         -}
         Single manipulationChain ->
             ( ActionDetails
-                    { paths =
-                        { copyFromBase = inputFilePath -- e.g. about/people/[person1]/content.md
-                        , copyFromPath = copyFromPath -- e.g. ../banner.jpeg
-                        , copyToPath = copyToPath -- e.g. ../../images/about/people/[person1]/
-                        , rewritePath = rewritePath -- e.g. /images/about/people/[person1]/
-                        , fileName = Path.base copyFromPath -- e.g. banner.jpeg
-                        , modifierName = ""
-                        }
-                  , manipulations = manipulationChain
-                  }
+                { paths =
+                    { copyFromBase = inputFilePath -- e.g. about/people/[person1]/content.md
+                    , copyFromPath = copyFromPath -- e.g. ../banner.jpeg
+                    , copyToPath = copyToPath -- e.g. ../../images/about/people/[person1]/
+                    , rewritePath = rewritePath -- e.g. /images/about/people/[person1]/
+                    , fileName = Path.base copyFromPath -- e.g. banner.jpeg
+                    , modifierName = ""
+                    }
+                , manipulations = manipulationChain
+                }
             , []
             )
 

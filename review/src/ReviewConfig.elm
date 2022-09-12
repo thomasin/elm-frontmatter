@@ -33,8 +33,10 @@ config : List Rule
 config =
     [ NoExposingEverything.rule
     , NoImportingEverything.rule []
+        |> Review.Rule.ignoreErrorsForFiles [ "src/Content/ElmSyntaxWriter.elm" ]
     , NoMissingTypeAnnotation.rule
     , NoMissingTypeAnnotationInLetIn.rule
+        |> Review.Rule.ignoreErrorsForFiles [ "src/Content/ElmSyntaxWriter.elm" ]
     , NoMissingTypeExpose.rule
     , NoPrematureLetComputation.rule
     , NoUnused.CustomTypeConstructors.rule []

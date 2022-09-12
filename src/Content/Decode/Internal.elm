@@ -1,4 +1,4 @@
-module Content.Decode.Internal exposing (DecoderContext(..), Attribute(..), Declaration(..), DeclarationResult(..), DecodedAttribute, Decoder(..), decoderToSyntax, escapedString)
+module Content.Decode.Internal exposing (Attribute(..), Declaration(..), DeclarationResult(..), DecodedAttribute, Decoder(..), DecoderContext(..), decoderToSyntax, escapedString)
 
 import Elm.Syntax.Expression
 import Elm.Syntax.Import
@@ -46,8 +46,8 @@ type Decoder a
         }
 
 
-type DecoderContext =
-    DecoderContext
+type DecoderContext
+    = DecoderContext
         { inputFilePath : Path.Path
         , moduleDir : List String
         }
@@ -55,7 +55,7 @@ type DecoderContext =
 
 escapedString : String -> String
 escapedString value =
-    (String.replace "\"" "\\\"" (String.replace "\\" "\\\\" value))
+    String.replace "\"" "\\\"" (String.replace "\\" "\\\\" value)
 
 
 decoderToSyntax : Decoder value -> { typeAnnotation : DecoderContext -> Elm.Syntax.TypeAnnotation.TypeAnnotation, imports : DecoderContext -> List Elm.Syntax.Import.Import, expression : DecoderContext -> value -> Elm.Syntax.Expression.Expression }
@@ -64,4 +64,3 @@ decoderToSyntax (Decoder decoder) =
     , imports = decoder.imports
     , expression = decoder.asExpression
     }
-

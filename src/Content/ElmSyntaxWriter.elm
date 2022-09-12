@@ -1,8 +1,8 @@
-module Content.ElmSyntaxWriter exposing (write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration)
+module Content.ElmSyntaxWriter exposing (write, writeFile)
 
 {-| Write a file to a string.
 
-@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration
+@docs write, writeFile
 
 -}
 
@@ -485,9 +485,8 @@ writeExpression (Node range inner) =
             if String.contains "\n" s then
                 --if String.endsWith "\\" s then
                 --    string ("\"\"\"" ++ s ++ "\"\"\"\"")
-
                 --else
-                    string ("\"\"\"" ++ s ++ "\"\"\"")
+                string ("\"\"\"" ++ s ++ "\"\"\"")
 
             else
                 string ("\"" ++ s ++ "\"")

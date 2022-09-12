@@ -1,33 +1,32 @@
 module Content.Decode exposing
     ( QueryResult, frontmatter, frontmatterWithoutBody, throw, ignore
     , Attribute, DecodedAttribute, attribute, renameTo
-    , Decoder, fromSyntax, string, int, float, datetime, anonymousRecord, list, reference
-    , Context
+    , Decoder, Context, fromSyntax, string, int, float, datetime, anonymousRecord, list, reference
     )
 
 {-| This is the main module used when writing decoders, and covers decoding basic Elm types like [`string`](#string), [`int`](#int), [`list`](#list)
 
-**[Declarations](#declarations)**  
+**[Declarations](#declarations)** ⸺
 From the `decoder` function in your `Content.elm` file, declare either success or failure finding a decoder.
 
-**[Attributes](#attributes)**  
+**[Attributes](#attributes)** ⸺
 Describe a YAML key/value pair
 
-**[Decoders](#decoders)**  
+**[Decoders](#decoders)** ⸺
 Decode YAML values into Elm types
 
 
-## Declarations  
+## Declarations
 
 @docs QueryResult, frontmatter, frontmatterWithoutBody, throw, ignore
 
 
-## Attributes  
+## Attributes
 
 @docs Attribute, DecodedAttribute, attribute, renameTo
 
 
-## Decoders  
+## Decoders
 
 @docs Decoder, Context, fromSyntax, string, int, float, datetime, anonymousRecord, list, reference
 
@@ -90,13 +89,13 @@ type alias QueryResult =
 frontmatterWithoutBody : List Attribute -> QueryResult
 frontmatterWithoutBody attributes =
     Content.Decode.Internal.Found
-        ( Content.Decode.Internal.Declaration
+        (Content.Decode.Internal.Declaration
             { typeAnnotation =
                 \args ->
                     List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node (attribute_.typeAnnotation args)) attributes
             , imports =
                 \args ->
-                    List.unique (List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> (attribute_.imports args)) attributes))
+                    List.unique (List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.imports args) attributes))
             , jsonDecoder =
                 \args ->
                     Json.Decode.field "data"
@@ -146,15 +145,15 @@ frontmatter bodyDecoder attributes =
             bodyDecoder
     in
     Content.Decode.Internal.Found
-        ( Content.Decode.Internal.Declaration
+        (Content.Decode.Internal.Declaration
             { typeAnnotation =
                 \args ->
                     List.append
-                        (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node ((attribute_.typeAnnotation args) )) attributes)
+                        (List.map (\(Content.Decode.Internal.Attribute attribute_) -> Content.Internal.node (attribute_.typeAnnotation args)) attributes)
                         [ Content.Internal.node ( Content.Internal.node "body", Content.Internal.node (bodyDecoder_.typeAnnotation args) ) ]
             , imports =
                 \args ->
-                    List.unique (bodyDecoder_.imports args ++ List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> (attribute_.imports args)) attributes))
+                    List.unique (bodyDecoder_.imports args ++ List.concat (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.imports args) attributes))
             , jsonDecoder =
                 \args ->
                     Json.Decode.Extra.combine
@@ -267,7 +266,7 @@ attribute keyName (Content.Decode.Internal.Decoder decoder) =
                 decoder.imports args
         , jsonDecoder =
             \args ->
-                Json.Decode.map (\value -> { keyName = (String.camelize keyName), expression = decoder.asExpression args value, actions = decoder.actions value })
+                Json.Decode.map (\value -> { keyName = String.camelize keyName, expression = decoder.asExpression args value, actions = decoder.actions value })
                     (Json.Decode.field keyName (decoder.jsonDecoder args))
         }
 
@@ -330,7 +329,7 @@ anonymousRecord attributes =
                 Json.Decode.Extra.combine
                     (List.map (\(Content.Decode.Internal.Attribute attribute_) -> attribute_.jsonDecoder args) attributes)
         , asExpression =
-            \args decodedList ->
+            \_ decodedList ->
                 Elm.Syntax.Expression.RecordExpr
                     (List.map
                         (\decoded ->
@@ -400,7 +399,8 @@ fromSyntax syntax actions jsonDecoder =
 -}
 string : Decoder String
 string =
-    fromSyntax Content.Decode.Syntax.string (always [])
+    fromSyntax Content.Decode.Syntax.string
+        (always [])
         (always Json.Decode.string)
 
 
@@ -414,7 +414,8 @@ string =
 -}
 int : Decoder Int
 int =
-    fromSyntax Content.Decode.Syntax.int (always [])
+    fromSyntax Content.Decode.Syntax.int
+        (always [])
         (always Json.Decode.int)
 
 
@@ -428,7 +429,8 @@ int =
 -}
 float : Decoder Float
 float =
-    fromSyntax Content.Decode.Syntax.float (always [])
+    fromSyntax Content.Decode.Syntax.float
+        (always [])
         (always Json.Decode.float)
 
 
@@ -469,7 +471,8 @@ This will generate the `Content/Index.elm` file
 -}
 datetime : Decoder Time.Posix
 datetime =
-    fromSyntax Content.Decode.Syntax.datetime (always [])
+    fromSyntax Content.Decode.Syntax.datetime
+        (always [])
         (always Json.Decode.Extra.datetime)
 
 
@@ -567,7 +570,6 @@ reference typePath =
         moduleDir : List String
         moduleDir =
             Content.Type.toModuleDir typePath
-
     in
     Content.Decode.Internal.Decoder
         { typeAnnotation =

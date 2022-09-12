@@ -1,8 +1,7 @@
-module Content.Write exposing (Writer(..), hasDeclarations, concat, record, toFileString)
+module Content.Write exposing (Writer(..), concat, hasDeclarations, record, toFileString)
 
-import Basics.Extra as Basics
-import Content.Decode
 import Content.Decode.Internal
+import Content.ElmSyntaxWriter
 import Content.Internal
 import Elm.Syntax.Declaration
 import Elm.Syntax.Exposing
@@ -10,12 +9,19 @@ import Elm.Syntax.Expression
 import Elm.Syntax.Import
 import Elm.Syntax.Module
 import Elm.Syntax.TypeAnnotation
-import Content.ElmSyntaxWriter
 import Json.Decode
 import Json.Encode
 import List.Extra as List
-import Path
 import String.Extra as String
+
+
+{-| Change how arguments are passed to a function.
+This splits paired arguments into two separate arguments.
+From Basics.Extra
+-}
+uncurry : (a -> b -> c) -> ( a, b ) -> c
+uncurry f ( a, b ) =
+    f a b
 
 
 type Writer
@@ -37,7 +43,10 @@ hasDeclarations (Writer writer) =
             True
 
 
+
 -- The decoder context contains moduleDir also, so it is possible to fuck up by passing a different moduleDir into record and toFileString
+
+
 toFileString : List String -> Writer -> String
 toFileString moduleDir (Writer writer) =
     Content.ElmSyntaxWriter.write
@@ -49,12 +58,12 @@ toFileString moduleDir (Writer writer) =
                         , exposingList =
                             Content.Internal.node
                                 (Elm.Syntax.Exposing.Explicit
-                                    (List.map Content.Internal.node writer.exposed)
+                                    (List.map Content.Internal.node (List.unique writer.exposed))
                                 )
                         }
                     )
             , imports = List.map Content.Internal.node writer.imports
-            , declarations = List.map Content.Internal.node (List.unique (Basics.uncurry (++) writer.declarations))
+            , declarations = List.map Content.Internal.node (List.unique (uncurry (++) writer.declarations))
             , comments = []
             }
         )

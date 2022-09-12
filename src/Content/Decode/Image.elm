@@ -1,24 +1,31 @@
-module Content.Decode.Image exposing (Decoder, ActionDetails, CopyArgs, Manipulation, process, batchProcess, width)
+module Content.Decode.Image exposing
+    ( CopyArgs
+    , Decoder, ActionDetails, Manipulation, process, batchProcess
+    , width
+    )
 
-{-| Copy and resize images.   
+{-| Copy and resize images.
 Use [`process`](#process) to process an image once, or [`batchProcess`](#batchProcess) to process an image multiple times with different manipulations applied.
 
-**[Configuration](#configuration)**  
+**[Configuration](#configuration)** ⸺
 Configure copy and rewrite args
 
-**[Decoders](#decoders)**  
+**[Decoders](#decoders)** ⸺
 Decode image file paths, process the images and rewrite the file paths
 
-**[Manipulations](#manipulations)**  
+**[Manipulations](#manipulations)** ⸺
 Change the image while copying (e.g. resize)
+
 
 ## Configuration
 
 @docs CopyArgs
 
+
 ## Decoders
 
 @docs Decoder, ActionDetails, Manipulation, process, batchProcess
+
 
 ## Manipulations
 
@@ -30,13 +37,13 @@ import Content.Decode
 import Content.Decode.Image.Internal
 import Content.Decode.Internal
 import Content.Decode.Syntax
-import Path
 import Json.Decode
 import Json.Encode
+import Path
 
 
-{-| Configure where images are copied to, and how their paths are rewritten.  
-    Passed in to the [`process`](#process) and [`batchProcess`](#batchProcess) functions.
+{-| Configure where images are copied to, and how their paths are rewritten.
+Passed in to the [`process`](#process) and [`batchProcess`](#batchProcess) functions.
 
     imageCopyArgs : Content.Decode.Image.CopyArgs
     imageCopyArgs =
@@ -50,25 +57,22 @@ directory as the root i.e. `/image-gen/banner.jpg`.
 
 Images will be copied with directory structure intact, i.e.
 
-```
-.
-└── content
-    └── about
-    |   ├── banner.jpg --> /static/image-gen/about/banner.jpg
-    |   └── content.md --> /Content/About.elm
-    └── hero.jpg --> /static/image-gen/hero.jpg
-```
+    .
+    └── content
+        └── about
+        |   ├── banner.jpg --> /static/image-gen/about/banner.jpg
+        |   └── content.md --> /Content/About.elm
+        └── hero.jpg --> /static/image-gen/hero.jpg
 
 with the above `imageCopyArgs`, would result in
 
-```
-.
-└── static
-    └── image-gen
-        └── about
-        |   ├── banner.jpg
-        └── hero.jpg
-```
+    .
+    └── static
+        └── image-gen
+            └── about
+            |   ├── banner.jpg
+            └── hero.jpg
+
 -}
 type alias CopyArgs =
     { copyToDirectory : String
@@ -78,33 +82,32 @@ type alias CopyArgs =
 
 {-| An image decoder. Can be used with any function that accepts a decoder
 
-```elm
-Content.Decode.frontmatterWithoutBody
-    [ Content.Decode.attribute "photos"
-        (Content.Decode.list (Content.Decode.Image.process imageCopyArgs []))
-    ]
-```
+    Content.Decode.frontmatterWithoutBody
+        [ Content.Decode.attribute "photos"
+            (Content.Decode.list (Content.Decode.Image.process imageCopyArgs []))
+        ]
+
 -}
 type alias Decoder =
     Content.Decode.Decoder ( ActionDetails, List ActionDetails )
 
 
 {-| Image action details. An opaque type returned from the image decoder, used to
-    define the manipulations to process on the image.
+define the manipulations to process on the image.
 -}
 type alias ActionDetails =
     Content.Decode.Image.Internal.ActionDetails
 
 
 {-| An image manipulation. See [`width`](#width) (the only manipulation we currently have 🤭).
-    Can be passed into [`process`](#process) or [`batchProcess`](#batchProcess) to be performed on referenced images.
+Can be passed into [`process`](#process) or [`batchProcess`](#batchProcess) to be performed on referenced images.
 -}
 type alias Manipulation =
     Content.Decode.Image.Internal.Manipulation
 
 
 {-| Copy and modify an image, with possible manipulations applied.
-    Use `Content.Decode.Image.process imageCopyArgs []` if you just want to copy the image, not apply any manipulations.
+Use `Content.Decode.Image.process imageCopyArgs []` if you just want to copy the image, not apply any manipulations.
 
 
     imageCopyArgs : Content.Decode.Image.CopyArgs
@@ -151,7 +154,7 @@ process copyArgs manipulations =
                 Json.Decode.string
                     |> Json.Decode.andThen (Content.Decode.Image.Internal.createActions context copyArgs (Content.Decode.Image.Internal.Single manipulations))
         , asExpression =
-            \context ( (Content.Decode.Image.Internal.ActionDetails firstActionDetails), _ ) ->
+            \context ( Content.Decode.Image.Internal.ActionDetails firstActionDetails, _ ) ->
                 Content.Decode.Syntax.string.expression context
                     (Path.toString firstActionDetails.paths.rewritePath ++ Path.separator firstActionDetails.paths.rewritePath ++ firstActionDetails.paths.fileName)
         , actions =
@@ -230,7 +233,7 @@ batchProcess copyArgs firstManipulation manipulations =
                 Json.Decode.string
                     |> Json.Decode.andThen (Content.Decode.Image.Internal.createActions context copyArgs (Content.Decode.Image.Internal.Batch firstManipulation manipulations))
         , asExpression =
-            \context ( (Content.Decode.Image.Internal.ActionDetails firstActionDetails), restActionDetails ) ->
+            \context ( Content.Decode.Image.Internal.ActionDetails firstActionDetails, restActionDetails ) ->
                 syntax.expression context
                     ( ( firstActionDetails.paths.modifierName
                       , Path.toString firstActionDetails.paths.rewritePath ++ Path.separator firstActionDetails.paths.rewritePath ++ firstActionDetails.paths.fileName

@@ -1,6 +1,6 @@
-module Content.Function exposing (Function, FunctionType(..), PathError(..), fromPath)
+module Content.Function exposing (FunctionType(..), Function, fromPath, PathError(..))
 
-{-|
+{-| This module is used by the CLI app, and is meant for parsing function details out of input file paths.
 
 @docs FunctionType, Function, fromPath, PathError
 
@@ -10,8 +10,6 @@ import Content.Internal
 import Path
 import Result.Extra as Result
 import String.Extra as String
-import List.Extra as List
-
 
 
 {-| Generated functions can either be singleton or collection item functions.
@@ -43,7 +41,6 @@ type PathError
     = PathIsHidden
     | PathIsEmpty
     | PathIsInvalid String
-
 
 
 {-| Turns a file path into a possible function

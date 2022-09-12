@@ -1,13 +1,8 @@
 module StringExtraTests exposing (suite)
 
-import Content.Decode.Syntax as Syntax
-import String.Extra as String
-import Elm.Syntax.Node
-import Elm.Syntax.Range
-import Elm.Writer
 import Expect
+import String.Extra as String
 import Test
-import Time
 
 
 suite : Test.Test
@@ -28,15 +23,15 @@ suite =
                         |> Expect.equal "classifiedWords"
             , Test.test """""01-getting-started/" == "gettingStarted" """ <|
                 \() ->
-                    String.camelize "01-getting-started/" 
+                    String.camelize "01-getting-started/"
                         |> Expect.equal "gettingStarted"
             , Test.test """""getting-started-01/" == "gettingStarted01" """ <|
                 \() ->
-                    String.camelize "getting-started-01/" 
+                    String.camelize "getting-started-01/"
                         |> Expect.equal "gettingStarted01"
             , Test.test """""[01-getting-started]" == "gettingStarted" """ <|
                 \() ->
-                    String.camelize "[01-getting-started]" 
+                    String.camelize "[01-getting-started]"
                         |> Expect.equal "gettingStarted"
             , Test.test """""-------" == "" """ <|
                 \() ->
@@ -62,15 +57,15 @@ suite =
                         |> Expect.equal "ClassifiedWords"
             , Test.test """""01-getting-started/" == "GettingStarted" """ <|
                 \() ->
-                    String.classify "01-getting-started/" 
+                    String.classify "01-getting-started/"
                         |> Expect.equal "GettingStarted"
             , Test.test """""getting-started-01/" == "GettingStarted01" """ <|
                 \() ->
-                    String.classify "getting-started-01/" 
+                    String.classify "getting-started-01/"
                         |> Expect.equal "GettingStarted01"
             , Test.test """""[01-getting-started]" == "GettingStarted" """ <|
                 \() ->
-                    String.classify "[01-getting-started]" 
+                    String.classify "[01-getting-started]"
                         |> Expect.equal "GettingStarted"
             , Test.test """""-------" == "" """ <|
                 \() ->

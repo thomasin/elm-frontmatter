@@ -1,20 +1,19 @@
-module Utils exposing (writeTypeAnnotation, writeExpression, testDecoder, testDeclaration)
+module Utils exposing (testDeclaration, testDecoder, writeExpression, writeTypeAnnotation)
 
-import Content.Decode.Internal
 import Content.Decode
+import Content.Decode.Internal
 import Content.Function
-import Elm.Syntax.Node
-import Elm.Syntax.Import
-import Elm.Syntax.Range
 import Elm.Syntax.Expression
+import Elm.Syntax.Import
+import Elm.Syntax.Node
+import Elm.Syntax.Range
 import Elm.Syntax.TypeAnnotation
 import Elm.Writer
-import Test
-import Path.Platform
-import Path
 import Expect
 import Json.Decode
 import Json.Encode
+import Path
+import Path.Platform
 
 
 writeExpression : Elm.Syntax.Expression.Expression -> String

@@ -1,25 +1,14 @@
 module DecodeImageTests exposing (suite)
 
-import Content.Decode as Decode
 import Content.Decode.Image as Image
-import Content.Decode.Internal
-import Content.Type
-import Elm.Syntax.Node
-import Elm.Syntax.Range
-import Elm.Syntax.Expression
-import Elm.Syntax.TypeAnnotation
-import Elm.Writer
 import Expect
 import Json.Decode
 import Json.Encode
-import Path
-import Path.Platform
-import Elm.Syntax.ModuleName
 import Test
-import Time
 import Utils
 
 
+copyArgs : Image.CopyArgs
 copyArgs =
     { copyToDirectory = "../static/image-gen/"
     , publicDirectory = "/image-gen/"
@@ -34,10 +23,12 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.process copyArgs []
-                            
+                        imageDecoder =
+                            Image.process copyArgs []
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             decoder.typeAnnotation context
                                 |> Utils.writeTypeAnnotation
@@ -48,10 +39,12 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.process copyArgs []
-                            
+                        imageDecoder =
+                            Image.process copyArgs []
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
@@ -67,10 +60,12 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.process copyArgs [ Image.width 500 ]
-
+                        imageDecoder =
+                            Image.process copyArgs [ Image.width 500 ]
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
@@ -86,16 +81,18 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.process copyArgs [ Image.width 500 ]
-
+                        imageDecoder =
+                            Image.process copyArgs [ Image.width 500 ]
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
                                     decoder.actions actions
                                         |> List.map (Json.Encode.encode 0 << .args)
-                                        |> Expect.equal ["{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":500}]}"]
+                                        |> Expect.equal [ "{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":500}]}" ]
 
                                 Err err ->
                                     Expect.fail (Json.Decode.errorToString err)
@@ -105,16 +102,18 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.process copyArgs [ Image.width 500, Image.width 500 ]
-
+                        imageDecoder =
+                            Image.process copyArgs [ Image.width 500, Image.width 500 ]
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
                                     decoder.actions actions
                                         |> List.map (Json.Encode.encode 0 << .args)
-                                        |> Expect.equal ["{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":500},{\"function\":\"width\",\"args\":500}]}"]
+                                        |> Expect.equal [ "{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":500},{\"function\":\"width\",\"args\":500}]}" ]
 
                                 Err err ->
                                     Expect.fail (Json.Decode.errorToString err)
@@ -126,14 +125,16 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.batchProcess copyArgs
-                            ( "300", [ Image.width 300 ] )
-                            [ ( "600", [ Image.width 600 ] )
-                            , ( "1200", [ Image.width 1200 ] )
-                            ]
-
+                        imageDecoder =
+                            Image.batchProcess copyArgs
+                                ( "300", [ Image.width 300 ] )
+                                [ ( "600", [ Image.width 600 ] )
+                                , ( "1200", [ Image.width 1200 ] )
+                                ]
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             decoder.typeAnnotation context
                                 |> Utils.writeTypeAnnotation
@@ -144,14 +145,16 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.batchProcess copyArgs
-                            ( "300", [] )
-                            [ ( "600", [] )
-                            , ( "1200", [] )
-                            ]
-
+                        imageDecoder =
+                            Image.batchProcess copyArgs
+                                ( "300", [] )
+                                [ ( "600", [] )
+                                , ( "1200", [] )
+                                ]
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
@@ -167,14 +170,16 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.batchProcess copyArgs
-                            ( "300", [ Image.width 300 ] )
-                            [ ( "600", [ Image.width 600 ] )
-                            , ( "1200", [ Image.width 1200 ] )
-                            ]
-
+                        imageDecoder =
+                            Image.batchProcess copyArgs
+                                ( "300", [ Image.width 300 ] )
+                                [ ( "600", [ Image.width 600 ] )
+                                , ( "1200", [ Image.width 1200 ] )
+                                ]
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
@@ -190,20 +195,22 @@ suite =
                 (\() ->
                     let
                         imageDecoder : Image.Decoder
-                        imageDecoder = Image.batchProcess copyArgs
-                            ( "300", [ Image.width 300 ] )
-                            [ ( "600", [ Image.width 600 ] )
-                            , ( "1200", [ Image.width 1200 ] )
-                            ]
-
+                        imageDecoder =
+                            Image.batchProcess copyArgs
+                                ( "300", [ Image.width 300 ] )
+                                [ ( "600", [ Image.width 600 ] )
+                                , ( "1200", [ Image.width 1200 ] )
+                                ]
                     in
-                    Utils.testDecoder "/recipes/content.md" (Just [ "Content", "Recipes" ]) imageDecoder
+                    Utils.testDecoder "/recipes/content.md"
+                        (Just [ "Content", "Recipes" ])
+                        imageDecoder
                         (\context decoder ->
                             case Json.Decode.decodeString (decoder.jsonDecoder context) "\"./banner.jpg\"" of
                                 Ok actions ->
                                     decoder.actions actions
                                         |> List.map (Json.Encode.encode 0 << .args)
-                                        |> Expect.equal  ["{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner-300.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":300}]}","{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner-600.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":600}]}","{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner-1200.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":1200}]}"]
+                                        |> Expect.equal [ "{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner-300.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":300}]}", "{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner-600.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":600}]}", "{\"paths\":{\"copyFromBase\":\"/recipes/content.md\",\"copyFromPath\":\"banner.jpg\",\"copyToPath\":\"../static/image-gen/recipes\",\"fileName\":\"banner-1200.jpg\"},\"manipulations\":[{\"function\":\"width\",\"args\":1200}]}" ]
 
                                 Err err ->
                                     Expect.fail (Json.Decode.errorToString err)
