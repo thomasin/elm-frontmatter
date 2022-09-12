@@ -1,27 +1,35 @@
 module Content.Decode exposing
-    ( QueryResult, fromSyntax, frontmatter, frontmatterWithoutBody, throw, ignore
-    , Attribute, attribute, renameTo
-    , Decoder, string, int, float, datetime, anonymousRecord, list, reference
-    , DecodedAttribute
+    ( QueryResult, frontmatter, frontmatterWithoutBody, throw, ignore
+    , Attribute, DecodedAttribute, attribute, renameTo
+    , Decoder, fromSyntax, string, int, float, datetime, anonymousRecord, list, reference
+    , Context
     )
 
-{-| # Writing decoders
+{-| This is the main module used when writing decoders, and covers decoding basic Elm types like [`string`](#string), [`int`](#int), [`list`](#list)
+
+**[Declarations](#declarations)**  
+From the `decoder` function in your `Content.elm` file, declare either success or failure finding a decoder.
+
+**[Attributes](#attributes)**  
+Describe a YAML key/value pair
+
+**[Decoders](#decoders)**  
+Decode YAML values into Elm types
 
 
-
-# Declaration
+## Declarations  
 
 @docs QueryResult, frontmatter, frontmatterWithoutBody, throw, ignore
 
 
-# Attribute
+## Attributes  
 
-@docs DecodedAttribute, Attribute, attribute, renameTo
+@docs Attribute, DecodedAttribute, attribute, renameTo
 
 
-# Basic decoders
+## Decoders  
 
-@docs Decoder, fromSyntax, string, int, float, datetime, anonymousRecord, list, reference
+@docs Decoder, Context, fromSyntax, string, int, float, datetime, anonymousRecord, list, reference
 
 -}
 
@@ -34,19 +42,21 @@ import Elm.Syntax.Expression
 import Elm.Syntax.ModuleName
 import Elm.Syntax.TypeAnnotation
 import Json.Decode
-import Json.Encode
 import Json.Decode.Extra
+import Json.Encode
 import List.Extra as List
-import String.Extra as String
 import Path
+import String.Extra as String
 import Time
 
 
-{-| The result of trying to find a decoder for a file
+{-| This type is returned from the main `decoder` function in your `Content.elm` file.
+It is the result of trying to find a decoder for an input file.
+Use [`frontmatter`](#frontmatter), [`frontmatterWithoutBody`](#frontmatterWithoutBody) to return a successfully found decoder, or [`throw`](#throw), [`ignore`](#ignore) if you can't match a decoder to the input.
 -}
 type alias QueryResult =
     Content.Decode.Internal.DeclarationResult
-    
+
 
 {-| Decode a frontmatter file. This will ignore the file body.
 
@@ -98,7 +108,8 @@ frontmatterWithoutBody attributes =
 
 
 {-| Decode a frontmatter file. This will include the file body as a `body` field in the generated record.
-    The first argument is the type that the body will be decoded as. Common options would be `Content.Decode.string` or `Content.Decode.Markdown.decode`
+The first argument is the type that the body will be decoded as. Common options would be `Content.Decode.string` or `Content.Decode.Markdown.decode`
+
 
     decoder : Content.Type.Path -> Content.Decode.QueryResult
     decoder typePath =
@@ -204,16 +215,11 @@ ignore =
 -- Attribute --
 
 
-{-| A YAML field
+{-| Represents a YAML key and value e.g. `title: Both the 'title' key and this string are part of the attribute`
+Can be used in the [`frontmatter`](#frontmatter), [`frontmatterWithoutBody`](#frontmatterWithoutBody), or [`anonymousRecord`](#anonymousRecord) functions.
 -}
 type alias Attribute =
     Content.Decode.Internal.Attribute
-
-
-{-| Decoded YAML field
--}
-type alias DecodedAttribute =
-    Content.Decode.Internal.DecodedAttribute
 
 
 {-| `attribute` is how you decode named YAML fields. They map
@@ -267,7 +273,7 @@ attribute keyName (Content.Decode.Internal.Decoder decoder) =
 
 
 {-| Rename an attribute! This means you can parse the same frontmatter
-    field into multiple Elm attributes.
+field into multiple Elm attributes.
 
     Content.Decode.frontmatter Content.Decode.string
         [ Content.Decode.attribute "title" Content.Decode.string
@@ -286,6 +292,13 @@ renameTo newName (Content.Decode.Internal.Attribute attribute_) =
             \args ->
                 Json.Decode.map (\decodedAttribute -> { decodedAttribute | keyName = String.camelize newName }) (attribute_.jsonDecoder args)
         }
+
+
+{-| The result of [`attribute`](#attribute)'s json decoder.
+It is an opaque type that the [`anonymousRecord`](#anonymousRecord) decodes and uses to construct the record expression.
+-}
+type alias DecodedAttribute =
+    Content.Decode.Internal.DecodedAttribute
 
 
 {-| Decode an anonymous record (We don't have typed records).
@@ -342,26 +355,29 @@ type alias Decoder a =
 
 
 {-| Decoder context passed down. Contains the file path and module directory of the file currently being decoded.
-    This is currently opaque, but if needed I can add a function to get the current file path.
+This is currently opaque, but if needed I can add a function to get the current file path.
 -}
 type alias Context =
     Content.Decode.Internal.DecoderContext
 
 
 {-| Create a decoder from a Syntax object.
-    This lets you use custom JSON decoders to ensure the content you are receiving is valid.
-    The Syntax object passed should be the Syntax object matching the output type of your JSON decoder.
+This lets you use custom JSON decoders to ensure the content you are receiving is valid.
+The Syntax object passed should be the Syntax object matching the output type of your JSON decoder.
 
-    Content.Decode.fromSyntax Content.Decode.Syntax.int (always [])
-        ( Json.Decode.int
-            |> Json.Decode.andThen (\number ->
-                if number > 0 then
-                    Json.Decode.succeed number
+    Content.Decode.fromSyntax Content.Decode.Syntax.int
+        (always [])
+        (Json.Decode.int
+            |> Json.Decode.andThen
+                (\number ->
+                    if number > 0 then
+                        Json.Decode.succeed number
 
-                else
-                    Json.Decode.fail "Only positive numbers supported"
-            )
+                    else
+                        Json.Decode.fail "Only positive numbers supported"
+                )
         )
+
 -}
 fromSyntax : Content.Decode.Syntax.Syntax Context a -> (a -> List { with : String, args : Json.Encode.Value }) -> (Context -> Json.Decode.Decoder a) -> Decoder a
 fromSyntax syntax actions jsonDecoder =

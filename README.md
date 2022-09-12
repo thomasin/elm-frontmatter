@@ -1,24 +1,40 @@
 In a vaguely similar way to [Haykll](https://jaspervdj.be/hakyll/), [Jekyll](https://jekyllrb.com/),
 turns Frontmatter files into Elm code that you can then import and use in your Elm app like any
-other module.
+other module. Also handles image copying and processing.
 
 The package works as expected, but worth being aware there is still quite a bit of work to go
 into making it a nice user experience.
 
-## Installation
+### Contents
 
-`npm install elm-frontmatter`
-`elm install thomasin/elm-frontmatter`
-Note `elm-frontmatter` attempts to use `elm-format` to format generated files.
-If it is not installed, files will still be written.
+**[Installation and setup](#installation-and-setup)**  
+├── [Install Packages](#install-packages)  
+└── [Get Started](#get-started)  
+**[Running](#running)**  
+└── [Options](#options)  
+**[Directory Structure](#directory-structure)**  
+├── [`content.md` Files](#-content-md-files)  
+└── [Singleton vs Collection Item Files](#singleton-vs-collection-item-files)  
 
-## Setup
+## Installation and Setup
 
-To get started, create a folder `/content` in the same directory as your `elm.json`.  
+### Install Packages
+
+`npm install elm-frontmatter`  
+`npm install elm-format` (Optionally)  
+`elm install thomasin/elm-frontmatter`  
+
+Note: `elm-format` will be used if it is found.  
+If it is not installed, files will still be written but unformatted.
+
+
+### Get Started
+
+Create a folder `/content` in the same directory as your `elm.json`.  
 
 To decode your first frontmatter file you can populate:  
 
-- a file `/content/index.md` with
+(1) A file `/content/index.md` with
 
 ```yaml
 ---
@@ -28,7 +44,7 @@ title: First page
 woohoo
 ```
 
-- a file `Content.elm` (placed in whichever folder your `Main.elm` is in) with
+(2) A file `Content.elm` (placed in whichever folder your `Main.elm` is in) with
 
 ```elm
 module Content exposing (decoder)
@@ -48,6 +64,8 @@ decoder typePath =
             Decode.throw
 
 ```
+
+(3) Run `npx elm-frontmatter`
 
 ## Running
 
@@ -90,7 +108,7 @@ elm-frontmatter --elm-dir='./src/elm' -y
   Set this to generate Elm files without asking for permission.  
   `--elm-dir` needs to be set to use this argument.
 
-## Directory structure
+## Directory Structure
 
 ```
 .
@@ -103,6 +121,7 @@ elm-frontmatter --elm-dir='./src/elm' -y
     |   ├── [second-post]  
     |   |   └── content.md --> /Content/Posts.elm
     |   └── happy 
+    |      ├── banner.jpg --> /image-gen/happy/banner.jpg
     |      └── ness.md --> /Content/Posts/Happy/Ness.elm
     └── quote
         ├── first.md --> /Content/Quote/First.elm
@@ -131,7 +150,7 @@ Once decoded, a generated `/Content` folder for this would look like
             └── #content : Content
 ```
 
-### content.md files
+### `content.md` Files
 
 `content.md` files are treated similarly to `index.html` files in webpages. If there is one in a folder,
 it will treat its containing folder name as its file name. This is useful if you want to keep images or other
@@ -162,10 +181,12 @@ will generate
 #### Notes:
 
 - If you have two conflicting files, say `posts.md` and `posts/content.md`, one will be overwritten.  
-- Since `content.md` files have special behaviour, having a top level `content` file or a `[content]` file/folder will throw an error and terminate the content generation.
+- Since `content.md` files have special behaviour, having a top level `content` file/folder or a `[content]` file/folder will throw an error and terminate the content generation.
 
 
-### Singleton vs collection item files
+### Singleton vs Collection Item Files
+
+See the [`Content.Type`](/Content-Type) module
 
 The two types of files you can have are singleton or collection item files. Collection item files are surrounded by brackets `[file-name].md`.  
 Collection item files share a type with other bracketed files at the same level, and will be generated into the same module.  

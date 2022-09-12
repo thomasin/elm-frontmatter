@@ -1,11 +1,11 @@
 module Content.Decode.Markdown exposing (decode)
 
-{-|
-Decode a field into a `List Markdown.Block.Block` from the [dillonkearns/elm-markdown](https://package.elm-lang.org/packages/dillonkearns/elm-markdown/latest/) package.
+{-| Decode a field into a `List Markdown.Block.Block` from the [dillonkearns/elm-markdown](https://package.elm-lang.org/packages/dillonkearns/elm-markdown/latest/) package.
 
 This lets you do some pretty cool things! To render the Markdown blocks into HTML, see [Markdown.Renderer](https://package.elm-lang.org/packages/dillonkearns/elm-markdown/latest/Markdown-Renderer)
 
 @docs decode
+
 -}
 
 import Content.Decode.Internal
@@ -31,21 +31,18 @@ import Markdown.Parser
 
 node = Content.Internal.node
 
+    decoder : Content.Type.Path -> Content.Decode.QueryResult
+    decoder typePath =
+        case typePath of
+            Content.Type.Single [ "Content", "Index" ] ->
+                Content.Decode.frontmatter Content.Decode.Markdown.decode
+                    [ Content.Decode.attribute "title" Content.Decode.string
+                    , Content.Decode.attribute "description" Content.Decode.string
+                    ]
 
-{-|
-```elm
-decoder : Content.Type.Path -> Content.Decode.QueryResult
-decoder typePath =
-    case typePath of
-        Content.Type.Single [ "Content", "Index" ] ->
-            Content.Decode.frontmatter Content.Decode.Markdown.decode
-                [ Content.Decode.attribute "title" Content.Decode.string
-                , Content.Decode.attribute "description" Content.Decode.string
-                ]
+            _ ->
+                Content.Decode.throw
 
-        _ ->
-            Content.Decode.throw
-```
 -}
 decode : Content.Decode.Internal.Decoder (List Markdown.Block.Block)
 decode =

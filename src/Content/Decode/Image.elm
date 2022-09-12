@@ -1,8 +1,28 @@
 module Content.Decode.Image exposing (Decoder, ActionDetails, CopyArgs, Manipulation, process, batchProcess, width)
 
-{-|
+{-| Copy and resize images.   
+Use [`process`](#process) to process an image once, or [`batchProcess`](#batchProcess) to process an image multiple times with different manipulations applied.
 
-@docs Decoder, CopyArgs, Manipulation, ActionDetails, process, batchProcess, width
+**[Configuration](#configuration)**  
+Configure copy and rewrite args
+
+**[Decoders](#decoders)**  
+Decode image file paths, process the images and rewrite the file paths
+
+**[Manipulations](#manipulations)**  
+Change the image while copying (e.g. resize)
+
+## Configuration
+
+@docs CopyArgs
+
+## Decoders
+
+@docs Decoder, ActionDetails, Manipulation, process, batchProcess
+
+## Manipulations
+
+@docs width
 
 -}
 
@@ -15,18 +35,40 @@ import Json.Decode
 import Json.Encode
 
 
-{-| Image processing configuration
+{-| Configure where images are copied to, and how their paths are rewritten.  
+    Passed in to the [`process`](#process) and [`batchProcess`](#batchProcess) functions.
 
     imageCopyArgs : Content.Decode.Image.CopyArgs
     imageCopyArgs =
-        { copyToDirectory = "../static/image-gen/"
+        { copyToDirectory = "./static/image-gen/"
         , publicDirectory = "/image-gen/"
         }
 
-will copy images to the `../static/image-gen/` folder, relative to
-the local `package.json`. Image URLs will be written with the public
-directory as the root i.e. `/image-gen/banner.jpg`
+will copy images to the `./static/image-gen/` folder, relative to
+the local `package.json`. Image URLs will be rewritten with the public
+directory as the root i.e. `/image-gen/banner.jpg`.
 
+Images will be copied with directory structure intact, i.e.
+
+```
+.
+└── content
+    └── about
+    |   ├── banner.jpg --> /static/image-gen/about/banner.jpg
+    |   └── content.md --> /Content/About.elm
+    └── hero.jpg --> /static/image-gen/hero.jpg
+```
+
+with the above `imageCopyArgs`, would result in
+
+```
+.
+└── static
+    └── image-gen
+        └── about
+        |   ├── banner.jpg
+        └── hero.jpg
+```
 -}
 type alias CopyArgs =
     { copyToDirectory : String
@@ -34,25 +76,35 @@ type alias CopyArgs =
     }
 
 
-{-| An image decoder
+{-| An image decoder. Can be used with any function that accepts a decoder
+
+```elm
+Content.Decode.frontmatterWithoutBody
+    [ Content.Decode.attribute "photos"
+        (Content.Decode.list (Content.Decode.Image.process imageCopyArgs []))
+    ]
+```
 -}
 type alias Decoder =
     Content.Decode.Decoder ( ActionDetails, List ActionDetails )
 
 
-{-| An image manipulation
--}
-type alias Manipulation =
-    Content.Decode.Image.Internal.Manipulation
-
-
-{-| Image action details
+{-| Image action details. An opaque type returned from the image decoder, used to
+    define the manipulations to process on the image.
 -}
 type alias ActionDetails =
     Content.Decode.Image.Internal.ActionDetails
 
 
-{-| Copy and modify an image
+{-| An image manipulation. See [`width`](#width) (the only manipulation we currently have 🤭).
+    Can be passed into [`process`](#process) or [`batchProcess`](#batchProcess) to be performed on referenced images.
+-}
+type alias Manipulation =
+    Content.Decode.Image.Internal.Manipulation
+
+
+{-| Copy and modify an image, with possible manipulations applied.
+    Use `Content.Decode.Image.process imageCopyArgs []` if you just want to copy the image, not apply any manipulations.
 
 
     imageCopyArgs : Content.Decode.Image.CopyArgs
@@ -111,7 +163,7 @@ process copyArgs manipulations =
         }
 
 
-{-| Make multiple copies of one image.
+{-| Make multiple copies of one image, with different manipulations applied.
 
 
     imageCopyArgs : Content.Decode.Image.CopyArgs

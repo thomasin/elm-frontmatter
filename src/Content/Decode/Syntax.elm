@@ -1,5 +1,6 @@
 module Content.Decode.Syntax exposing
-    ( Syntax, noContext, node, string, datetime, int, float, bool, list, dict, tuple2, tuple3
+    ( Syntax, noContext, string, datetime, int, float, bool, list, dict, tuple2, tuple3
+    , node
     )
 
 {-| These Syntax helpers are extensible wrappers around elm-syntax, made so you can build
@@ -10,11 +11,12 @@ type and function declarations in parallel.
         Content.Decode.Syntax.tuple2
             ( Content.Decode.Syntax.tuple2 ( Content.Decode.Syntax.int, Content.Decode.Syntax.string )
             , Content.Decode.Syntax.list
-                (Content.Decode.Syntax.tuple2 ( Content.Decode.Syntax.string Content.Decode.Syntax.string ))
+                (Content.Decode.Syntax.tuple2 (Content.Decode.Syntax.string Content.Decode.Syntax.string))
             )
 
 @docs Syntax, noContext, string, datetime, int, float, bool, list, dict, tuple2, tuple3
 @docs node
+
 -}
 
 import Content.Internal
@@ -27,8 +29,8 @@ import Time
 
 
 {-| Syntax object. Fields take a `context` argument, so when you render your type
-    annotation, imports or expressions you can pass down meta. `Content.Decode.Decoder`s
-    use this to pass down the input file path so that decoders know which file they are decoding.
+annotation, imports or expressions you can pass down meta. `Content.Decode.Decoder`s
+use this to pass down the input file path so that decoders know which file they are decoding.
 -}
 type alias Syntax context value =
     { typeAnnotation : context -> Elm.Syntax.TypeAnnotation.TypeAnnotation
@@ -214,8 +216,8 @@ tuple3 ( itemA, itemB, itemC ) =
 
 
 {-| Small helper for building up Elm.Syntax expressions (zero-ed out node, empty range).
-    There aren't many helpers in this module for building up custom types so I would feel bad
-    for not at least offering this.
+There aren't many helpers in this module for building up custom types so I would feel bad
+for not at least offering this.
 -}
 node : a -> Elm.Syntax.Node.Node a
 node = Content.Internal.node

@@ -1,10 +1,6 @@
 module Content.Type exposing (Path(..), toString, toTypeName, toModuleDir)
 
-{-|
-
-# Content.Type
-
-This is passed in to the main `decoder` function in `Content.elm`, and can be matched
+{-| The [`Path`](#Path) type is passed in to the main `decoder` function in `Content.elm`, and can be matched
 against to assign decoders based on module directory and either single or collection item type.
 
 @docs Path, toString, toTypeName, toModuleDir

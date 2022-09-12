@@ -1,7 +1,7 @@
 module Content.Module exposing (Module, GenerationError(..), UndecodedFunction, UndecodedModule, generate)
 
 
-{-|
+{-| This module is used by the CLI app, and is meant for generating an output module out of function details.
 Decode a file from one or many JSON frontmatter values.
 
 @docs UndecodedModule, UndecodedFunction, Module, generate, GenerationError

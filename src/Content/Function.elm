@@ -21,6 +21,7 @@ These functions are made from paths with no brackets i.e `about.md`, `recipe/egg
 
 "Collection item" means that they do share types with other functions.
 These functions are made from paths with surrounding brackets i.e `recipes/[egg].md`, `recipes/[egg]/content.md`
+
 -}
 type FunctionType
     = SingletonFunction
