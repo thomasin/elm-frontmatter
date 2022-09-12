@@ -87,7 +87,7 @@ async function fileGlob() {
 
                     console.log(chalk.bold.green("\nAll files written ✍️"))
 
-                    const result = spawn.sync('elm-format', ['--elm-version=0.19', '--yes', path.join(elmDir, 'Content')], {
+                    const result = spawn.sync('npx', ['elm-format', '--elm-version=0.19', '--yes', path.join(elmDir, 'Content')], {
                         stdio: ['ignore', 'ignore', 'ignore']
                     })
                 } else {
