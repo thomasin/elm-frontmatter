@@ -1,6 +1,6 @@
 {
   "name": "elm-frontmatter",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,8 +21,6 @@
     "chalk": "^4.1.2",
     "command-line-args": "^5.2.1",
     "cross-spawn": "^7.0.3",
-    "elm-test": "^0.19.1-revision7",
-    "elm-tooling": "^1.8.0",
     "fs-extra": "^10.0.0",
     "glob": "^7.2.0",
     "gray-matter": "^4.0.3",
@@ -32,6 +30,8 @@
     "temp": "^0.9.4"
   },
   "devDependencies": {
+    "elm-test": "^0.19.1-revision7",
+    "elm-tooling": "^1.8.0",
     "elm-format": "^0.8.5",
     "elm-json": "^0.2.12",
     "elm-review": "^2.7.0",
